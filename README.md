@@ -17,7 +17,7 @@ Integrate code on your website to display logos of companies, images, or anythin
 
 ## Contributions :handshake:
 
-Open an issue, submit a pull request or contact me for any contributions.
+Open an issue, submit a pull request or contact me for any contributions
 
 ## Author :writing_hand:
 
