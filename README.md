@@ -11,7 +11,7 @@ Integrate code on your website to display logos of companies, images, or anythin
 3. **Animation**: The `scrollLeft` animation moves the items from right to left. The `animation-delay` ensures that items start scrolling one after another, creating a seamless flow.
 4. **Loop**: The `animation-iteration-count: infinite` ensures that the scrolling repeats continuously.
 
-* CSS variables are used for easier reusability and dynamic styling
+💡 CSS variables are used for easier reusability and dynamic styling
 
 *For live demo, check out my [codepen](https://codepen.io/andrew-obando/pen/XWQaBBr)*
 
