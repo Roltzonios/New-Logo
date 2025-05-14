@@ -1,0 +1,632 @@
+"use client"
+
+import type React from "react"
+import { useState, useEffect, useRef } from "react"
+import { motion } from "framer-motion"
+import { Link, BellRing } from "lucide-react"
+// Replace direct image imports with placeholder URLs
+const cvsLogo = "/placeholder.svg?height=40&width=80"
+const walgreensLogo = "/placeholder.svg?height=40&width=80"
+const sevenElevenLogo = "/placeholder.svg?height=40&width=80"
+
+// =========================================
+// Types and Data
+// =========================================
+
+export type Step = {
+  id: number
+  text: string
+  completed: boolean
+  progress: number
+  isActive: boolean
+}
+
+export type Property = {
+  name: string
+  location: string
+  cap: string
+  sqft: string
+  price: string
+}
+
+// Demo data for steps
+const demoSteps: Step[] = [
+  {
+    id: 1,
+    text: "Finding Best Properties",
+    completed: false,
+    progress: 0,
+    isActive: false,
+  },
+  {
+    id: 2,
+    text: "Generating Offering Memorandum",
+    completed: false,
+    progress: 0,
+    isActive: false,
+  },
+  {
+    id: 3,
+    text: "Drafting Email",
+    completed: false,
+    progress: 0,
+    isActive: false,
+  },
+]
+
+// Demo data for properties
+const properties: Property[] = [
+  {
+    name: "7-Eleven Gas Station",
+    location: "123 Main St, Austin, TX 78701",
+    price: "$5,450,000",
+    cap: "6.25%",
+    sqft: "4,250",
+  },
+  {
+    name: "Walgreens Corner Location",
+    location: "456 Congress Ave, Austin, TX 78704",
+    price: "$3,750,000",
+    cap: "5.90%",
+    sqft: "14,500",
+  },
+  {
+    name: "CVS Pharmacy",
+    location: "789 Lamar Blvd, Austin, TX 78756",
+    price: "$4,250,000",
+    cap: "6.10%",
+    sqft: "12,200",
+  },
+]
+
+// =========================================
+// ThinkingAnimation Component
+// =========================================
+
+const ThinkingAnimation: React.FC = () => {
+  return (
+    <motion.div
+      className="flex space-x-1 my-2 ml-10"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      {[0, 1, 2].map((i) => (
+        <motion.div
+          key={i}
+          className="w-2 h-2 bg-blue-400 rounded-full"
+          animate={{
+            scale: [1, 1.5, 1],
+            opacity: [0.5, 1, 0.5],
+          }}
+          transition={{
+            duration: 1.0,
+            repeat: Number.POSITIVE_INFINITY,
+            delay: i * 0.2,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </motion.div>
+  )
+}
+
+// =========================================
+// PropertyCard Component
+// =========================================
+
+interface PropertyCardProps {
+  property: Property
+  index: number
+}
+
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, index }) => {
+  // Function to get logo for each store
+  const getLogo = (name: string) => {
+    if (name.includes("7-Eleven")) {
+      return (
+        <img src={sevenElevenLogo || "/placeholder.svg"} alt="7-Eleven Logo" className="h-4 w-auto inline-block mr-2" />
+      )
+    } else if (name.includes("CVS")) {
+      return <img src={cvsLogo || "/placeholder.svg"} alt="CVS Logo" className="h-4 w-auto inline-block mr-2" />
+    } else if (name.includes("Walgreens")) {
+      return (
+        <img src={walgreensLogo || "/placeholder.svg"} alt="Walgreens Logo" className="h-4 w-auto inline-block mr-2" />
+      )
+    }
+    return null
+  }
+
+  // Determine background class based on property name
+  const getBgClass = (name: string) => {
+    if (name.includes("7-Eleven")) {
+      return "property-card-7eleven" // Yellow for 7-Eleven
+    } else if (name.includes("Walgreens")) {
+      return "property-card-walgreens" // Green for Walgreens
+    } else if (name.includes("CVS")) {
+      return "property-card-cvs" // Red for CVS
+    }
+    return ""
+  }
+
+  return (
+    <motion.div
+      className={`mb-6 last:mb-2 bg-white rounded-lg p-3 ${getBgClass(property.name)}`}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 * index }}
+    >
+      <div className="flex items-center">
+        {getLogo(property.name)}
+        <p className="font-medium">{property.name}</p>
+      </div>
+      <p className="text-xs mb-1">{property.location}</p>
+      <div className="flex gap-2 text-xs mb-3">
+        <span>Cap: {property.cap}</span>
+        <span>•</span>
+        <span>{property.sqft} SF</span>
+        <span>•</span>
+        <span>{property.price}</span>
+      </div>
+
+      {/* OM Link with icon */}
+      <div className="flex items-center text-black hover:text-blue-700 transition-colors cursor-pointer bg-gray-100 px-3 py-2 rounded-md mb-2 border border-gray-200">
+        <Link className="h-4 w-4 mr-2" />
+        <span className="text-sm underline">NetLeasePlanet Branded {property.name} OM</span>
+      </div>
+    </motion.div>
+  )
+}
+
+// =========================================
+// WorkflowSteps Component
+// =========================================
+
+interface WorkflowStepsProps {
+  steps: Step[]
+  currentStepIndex: number
+}
+
+const WorkflowSteps: React.FC<WorkflowStepsProps> = ({ steps, currentStepIndex }) => {
+  return (
+    <motion.div
+      className="bg-white/80 backdrop-blur-sm rounded-xl p-3 mb-4 w-[90%] mx-auto shadow-md"
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      transition={{ duration: 0.3 }}
+    >
+      {steps.map((step, index) => (
+        <div key={step.id} className="mb-3 last:mb-0">
+          <div className="flex items-center gap-2 mb-1">
+            <div
+              className={`h-5 w-5 rounded-full flex items-center justify-center text-white ${step.completed ? "bg-primary" : "bg-gray-300"}`}
+            >
+              {step.completed ? (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M1 4L3.5 6.5L9 1"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </motion.div>
+              ) : (
+                index === currentStepIndex && <div className="h-2 w-2 bg-white rounded-full animate-pulse-soft"></div>
+              )}
+            </div>
+            <span className={`text-sm ${index <= currentStepIndex ? "text-gray-800" : "text-gray-400"}`}>
+              {step.text}
+            </span>
+          </div>
+
+          {index <= currentStepIndex && (
+            <div className="ml-7 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-primary rounded-full"
+                initial={{ width: 0 }}
+                animate={{
+                  width: step.completed ? "100%" : step.isActive ? "100%" : "0%",
+                }}
+                transition={{
+                  duration: 2.5,
+                  ease: "linear",
+                  repeat: 0,
+                }}
+              />
+            </div>
+          )}
+        </div>
+      ))}
+    </motion.div>
+  )
+}
+
+// =========================================
+// UserMessage Component
+// =========================================
+
+interface UserMessageProps {
+  showNotification?: boolean
+}
+
+const UserMessage: React.FC<UserMessageProps> = ({ showNotification = false }) => {
+  return (
+    <motion.div
+      className="user-message pt-16 mb-4 relative w-[90%] mx-auto"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      {/* User profile header - with blue gradient background */}
+      <div className="flex items-start gap-2 z-10 relative mb-2">
+        <div className="bg-blue-600 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0 shadow-md">
+          <span className="text-white font-medium text-sm">JD</span>
+        </div>
+        <div className="relative">
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-medium mb-1 px-3 py-0.5 bg-blue-600 text-white rounded shadow-sm">John Doe</p>
+
+            {/* Notification bell next to name */}
+            {showNotification && (
+              <motion.div
+                className="bg-red-500 text-white flex items-center px-2 py-0.5 rounded-md"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ type: "spring", stiffness: 500, damping: 15 }}
+              >
+                <BellRing size={12} className="text-white" />
+                <span className="text-[10px] text-white ml-1">new form submitted</span>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Separated message container */}
+      <motion.div
+        className="red-inquiry rounded-lg mt-1 overflow-hidden bg-gray-800/70 backdrop-blur-sm shadow-lg"
+        initial={{ opacity: 0, y: 5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <p className="text-sm py-2 px-3 text-left text-white font-medium">
+          Hey NetLeasePlanet! I'm looking for an NNN property, cap rate of 6% located in Austin, Texas. Can you send me
+          some OMs? Thanks!
+        </p>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// =========================================
+// AIResponse Component
+// =========================================
+
+interface AIResponseProps {
+  properties: Property[]
+}
+
+const AIResponse: React.FC<AIResponseProps> = ({ properties }) => {
+  return (
+    <motion.div
+      className="ai-message p-4 rounded-2xl mt-4 font-medium w-[90%] mx-auto bg-white/90 backdrop-blur-sm"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{
+        boxShadow: "0 0 20px rgba(255, 255, 255, 0.5), 0 4px 10px rgba(0, 0, 0, 0.1)",
+        position: "relative",
+      }}
+    >
+      <div className="flex items-start gap-2">
+        <div className="bg-blue-500 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
+          <span className="text-white font-medium text-sm">AI</span>
+        </div>
+        <div className="text-left">
+          <p className="text-sm font-medium mb-2">NetLeasePlanet AI</p>
+          <p className="text-sm mb-4 text-left">
+            I found {properties.length} NNN properties in Austin, TX with cap rates around 6%. Here they are with their
+            offering memorandums:
+          </p>
+
+          {/* Properties */}
+          {properties.map((property, index) => (
+            <PropertyCard key={property.name} property={property} index={index} />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// =========================================
+// Main AIWorkflowDemo Component
+// =========================================
+
+interface AIWorkflowDemoProps {
+  active: boolean
+}
+
+const AIWorkflowDemo: React.FC<AIWorkflowDemoProps> = ({ active }) => {
+  const [steps, setSteps] = useState<Step[]>(demoSteps)
+  const [showContainer, setShowContainer] = useState(false)
+  const [showInitialMessage, setShowInitialMessage] = useState(false)
+  const [currentStepIndex, setCurrentStepIndex] = useState(-1)
+  const [showResponse, setShowResponse] = useState(false)
+  const [restartDemo, setRestartDemo] = useState(false)
+  const [showThinking, setShowThinking] = useState(false)
+  const [showNotification, setShowNotification] = useState(false)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  // Reference to track the demo state persistently
+  const demoStateRef = useRef({
+    hasStarted: false,
+    highestStepIndex: -1,
+    stepsCompleted: false,
+    responseShown: false,
+  })
+
+  // Reset all states to initial values
+  const resetStates = () => {
+    setSteps(
+      demoSteps.map((step) => ({
+        ...step,
+        completed: false,
+        progress: 0,
+        isActive: false,
+      })),
+    )
+    setShowContainer(false)
+    setShowInitialMessage(false)
+    setCurrentStepIndex(-1)
+    setShowResponse(false)
+    setShowThinking(false)
+    setShowNotification(false)
+
+    // Reset the persistent state tracking
+    demoStateRef.current = {
+      hasStarted: false,
+      highestStepIndex: -1,
+      stepsCompleted: false,
+      responseShown: false,
+    }
+  }
+
+  // Start the demo sequence
+  const startDemo = () => {
+    // Check if demo has already started
+    if (demoStateRef.current.hasStarted) {
+      // Resume from current state
+      resumeDemo()
+      return
+    }
+
+    // Reset all states first
+    resetStates()
+
+    // Mark demo as started
+    demoStateRef.current.hasStarted = true
+
+    // Initial delay before starting
+    setTimeout(() => {
+      // Show container, initial message, and notification together
+      setShowContainer(true)
+      setShowInitialMessage(true)
+      setShowNotification(true)
+
+      // Go straight to processing steps without showing thinking animation
+      setTimeout(() => {
+        setCurrentStepIndex(0)
+        processStep(0)
+      }, 1000)
+    }, 100)
+  }
+
+  // Resume demo from current state (for tab visibility changes)
+  const resumeDemo = () => {
+    // Ensure the container is shown
+    setShowContainer(true)
+    setShowInitialMessage(true)
+
+    // If all steps were completed, show the response
+    if (demoStateRef.current.stepsCompleted) {
+      setSteps((prev) => prev.map((step) => ({ ...step, completed: true, isActive: false })))
+      setCurrentStepIndex(steps.length)
+      setShowNotification(!demoStateRef.current.responseShown)
+      setShowResponse(demoStateRef.current.responseShown)
+      return
+    }
+
+    // If we were in the middle of steps, resume from highest step
+    if (demoStateRef.current.highestStepIndex >= 0) {
+      const highestStep = demoStateRef.current.highestStepIndex
+
+      // Update steps to reflect current progress
+      setSteps((prev) =>
+        prev.map((step, i) => ({
+          ...step,
+          completed: i < highestStep,
+          isActive: i === highestStep,
+          // Ensure progress doesn't go backwards
+          progress: i === highestStep ? Math.max(step.progress, 50) : i < highestStep ? 100 : 0,
+        })),
+      )
+
+      setCurrentStepIndex(highestStep)
+      setShowNotification(true)
+
+      // Continue processing from this step
+      processStep(highestStep)
+    }
+  }
+
+  useEffect(() => {
+    if (!active) {
+      // When not active, reset everything
+      resetStates()
+      return
+    }
+
+    if (restartDemo) {
+      // Reset states and start demo
+      resetStates()
+      setTimeout(startDemo, 500)
+      setRestartDemo(false)
+    } else {
+      // Initial load
+      setTimeout(startDemo, 500)
+    }
+
+    // Add visibility change event listener
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && demoStateRef.current.hasStarted && active) {
+        resumeDemo()
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    return () => {
+      // Clean up event listener
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      // Cleanup when component unmounts or becomes inactive
+      resetStates()
+    }
+  }, [active, restartDemo])
+
+  const handleRestart = () => {
+    setRestartDemo(true)
+  }
+
+  // Process each step with timing
+  const processStep = (index: number) => {
+    // Update the highest step reached
+    demoStateRef.current.highestStepIndex = Math.max(demoStateRef.current.highestStepIndex, index)
+
+    if (index >= steps.length) {
+      // All steps completed, show response
+      demoStateRef.current.stepsCompleted = true
+
+      setTimeout(() => {
+        setShowResponse(true)
+        demoStateRef.current.responseShown = true
+
+        // Hide notification when showing response
+        setShowNotification(false)
+        // Scroll to about halfway down after response is shown, more slowly
+        setTimeout(() => {
+          if (scrollContainerRef.current) {
+            // Scroll to a fixed position to show the properties
+            const targetScroll = 200
+            const startScroll = scrollContainerRef.current.scrollTop
+            const distance = targetScroll - startScroll
+            const duration = 2000
+            const startTime = performance.now()
+
+            const scrollStep = (timestamp: number) => {
+              const elapsed = timestamp - startTime
+              const progress = Math.min(elapsed / duration, 1)
+              // Use an eased progress curve for smoother scrolling
+              const easeProgress =
+                progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2
+
+              if (scrollContainerRef.current) {
+                scrollContainerRef.current.scrollTop = startScroll + distance * easeProgress
+              }
+
+              if (progress < 1) {
+                requestAnimationFrame(scrollStep)
+              }
+            }
+
+            requestAnimationFrame(scrollStep)
+          }
+        }, 600)
+      }, 500)
+      return
+    }
+
+    // Set the current step as active
+    setSteps((prevSteps) =>
+      prevSteps.map((step, i) => ({
+        ...step,
+        isActive: i === index,
+        completed: i < index,
+        // Ensure progress doesn't go backwards
+        progress: step.progress > 0 && i !== index ? step.progress : step.progress,
+      })),
+    )
+
+    // After 2.5 seconds, mark as complete and move to next step
+    setTimeout(() => {
+      setSteps((prevSteps) =>
+        prevSteps.map((step, i) => ({
+          ...step,
+          completed: i <= index,
+          isActive: false,
+          // Set progress to 100 for completed steps
+          progress: i <= index ? 100 : step.progress,
+        })),
+      )
+
+      // Move to next step
+      setTimeout(() => {
+        setCurrentStepIndex(index + 1)
+        processStep(index + 1)
+      }, 300)
+    }, 2500)
+  }
+
+  if (!active) return null
+
+  return (
+    <motion.div
+      className="mx-auto relative w-full"
+      style={{ maxWidth: "100%", minHeight: "600px" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.1, duration: 0.3 }}
+    >
+      {/* Direct content in video container with white background */}
+      {showContainer && (
+        <div
+          className="relative"
+          style={{
+            height: "600px",
+            backgroundColor: "white",
+          }}
+        >
+          {/* Scrollable content */}
+          <div ref={scrollContainerRef} className="p-6 h-[540px] overflow-y-auto">
+            {/* Always show the user message at the top */}
+            <UserMessage showNotification={showNotification || showResponse} />
+
+            {/* Processing steps */}
+            {currentStepIndex >= 0 && <WorkflowSteps steps={steps} currentStepIndex={currentStepIndex} />}
+
+            {/* AI Response */}
+            {showResponse && <AIResponse properties={properties} />}
+          </div>
+
+          {/* Demo controls - fixed at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 p-3 text-center border-t border-gray-200 bg-white backdrop-blur-sm">
+            <button
+              onClick={handleRestart}
+              className="text-xs text-blue-600 font-medium hover:text-blue-800 transition-colors"
+            >
+              Restart Demo
+            </button>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
+export default AIWorkflowDemo
