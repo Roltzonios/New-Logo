@@ -1,0 +1,27 @@
+{
+  "name": "infinite-logo-marquee-css",
+  "version": "1.0.0",
+  "description": "Infinite Logo Carousel with only CSS that showcases a continuous loop of logos, with fading gradient effect on the edges of the carousel.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Azie88/Infinite-Logo-Marquee-CSS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Azie88/Infinite-Logo-Marquee-CSS/issues"
+  },
+  "homepage": "https://github.com/Azie88/Infinite-Logo-Marquee-CSS#readme",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "dependencies": {
+    "framer-motion": "^12.11.0",
+    "gsap": "^3.13.0"
+  }
+}

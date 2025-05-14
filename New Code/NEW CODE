@@ -1,0 +1,275 @@
+Here is all The New Code for the lottery animation:
+
+Styles.css
+* {
+  font: 16px Arial, sans-serif;
+}
+
+#viewport {
+  display: flex;
+}
+
+.reel {
+  position: relative;
+  border: 1px solid #555;
+  width: 100px;
+  overflow: hidden;
+  height: 200px;
+  box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.5);
+  gap: 10px;
+}
+
+.symbol {
+  position: absolute;
+  width: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-top: 1px solid #999;
+  font-size: 24px;
+}
+
+#viewport .reel:first-child {
+  border-right: 0;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+#viewport .reel:last-child {
+  border-left: 0;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.spin-button {
+  display: block;
+
+  padding: 8px;
+  border-radius: 5px;
+  width: 100px;
+  border: 1px solid rgb(110, 6, 6);
+  background-color: red;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+#controls {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+}
+
+Reel.js: class Reel {
+    constructor(parent) {
+      const reel = document.createElement("div");
+      reel.className = "reel";
+      reel.style.height = `${REEL_HEIGHT}px`;
+      parent.appendChild(reel);
+  
+      const symbols = shuffleArray([...SYMBOLS]).map((symbol, index) => {
+        const div = document.createElement("div");
+        div.className = "symbol";
+        div.style.height = `${SYMBOL_HEIGHT}px`;
+        div.style.bottom = `${SYMBOL_HEIGHT * index - SYMBOL_HEIGHT / 2}px`;
+        div.textContent = symbol;
+        div.symbol = symbol;
+        return div;
+      });
+  
+      const symbolsToRender = Math.ceil(reel.clientHeight / SYMBOL_HEIGHT) + 1;
+  
+      for (
+        let index = 0;
+        index < symbolsToRender && index < symbols.length;
+        index++
+      ) {
+        const symbol = symbols[index];
+        reel.appendChild(symbol);
+      }
+  
+      let interval = null;
+  
+      function spin(winSymbol, onComplete) {
+        let step = SPIN_STEP;
+        let friction = 0;
+        let iteration = 0;
+  
+        if (interval) {
+          clearInterval(interval);
+        }
+  
+        function internalSpin() {
+          if (step <= 0) {
+            clearInterval(interval);
+            return;
+          }
+  
+          let winSymbolDistance;
+  
+          symbols.forEach((div) => {
+            const bottom = parseFloat(div.style.bottom);
+            let newBottom = bottom - step;
+            if (newBottom < REEL_HEIGHT - PAGE) {
+              newBottom += PAGE;
+            }
+  
+            div.style.bottom = `${newBottom}px`;
+  
+            const rendered = reel.contains(div);
+            if (newBottom <= -SYMBOL_HEIGHT) {
+              if (rendered) {
+                div.remove();
+              }
+            } else if (newBottom <= REEL_HEIGHT) {
+              if (!rendered) {
+                reel.append(div);
+              }
+            }
+  
+            if (div.symbol === winSymbol) {
+              const distance =
+                newBottom < 0 ? newBottom + PAGE_OFFSET : newBottom;
+              winSymbolDistance = distance - CENTER;
+            }
+          });
+  
+          if (iteration > FRICTION_FREE_ITERATIONS) {
+            const force = friction * DRAG_FORCE;
+            const newStep = step - force;
+  
+            if (newStep > DRAG_THRESHOLD) {
+              step = newStep;
+              friction++;
+            } else {
+              if (winSymbolDistance > 0) {
+                const decelerationFactor = step / winSymbolDistance;
+  
+                // Apply an exponential easing-out curve to the step decrement
+                const easing = decelerationFactor ** 2;
+                step -= easing * step;
+  
+                if (winSymbolDistance < 0.01) {
+                  execFn(onComplete);
+                  clearInterval(interval);
+                } else if (step <= 0 && winSymbolDistance > 0) {
+                  step = 5;
+                }
+              }
+            }
+          }
+  
+          iteration++;
+        }
+  
+        interval = setInterval(internalSpin, FRAME_RATE);
+      }
+  
+      this.spin = spin;
+  
+      this.stop = () => {
+        if (interval) {
+          clearInterval(interval);
+        }
+      };
+    }
+  }
+
+  Index.html: <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Emoji Slot Machine</title>
+      <link href="styles.css" rel="stylesheet" />
+    </head>
+    <body>
+      <div id="viewport"></div>
+      <div id="controls">
+        <button class="spin-button" onclick="javascript:randomSpin()">
+          Spin
+        </button>
+        <label for="autoplay">
+          <input id="autoplay" type="checkbox" />
+          Autoplay
+        </label>
+      </div>
+      <script src="const.js"></script>
+      <script src="helpers.js"></script>
+      <script src="reel.js"></script>
+      <script>
+        const viewport = document.getElementById("viewport");
+        const reels = [];
+        for (var i = 0; i < REELS; i++) {
+          reels.push(new Reel(viewport));
+        }
+  
+        let done = 0;
+  
+        function onComplete() {
+          done++;
+  
+          if (done === REELS) {
+            done = 0;
+  
+            if (document.getElementById("autoplay").checked) {
+              setTimeout(() => {
+                randomSpin();
+              }, AUTOPLAY_DELAY);
+            }
+          }
+        }
+  
+        function randomSpin() {
+          const winCombination = [];
+  
+          for (var i = 0; i < REELS; i++) {
+            const winSymbol =
+              SYMBOLS[Math.floor(Math.random() * (SYMBOLS.length - 1))];
+            winCombination.push(winSymbol);
+  
+            const j = i;
+            setTimeout(() => {
+              reels[j].spin(winSymbol, onComplete);
+            }, j * SPIN_DELAY);
+          }
+  
+          console.log("Win combination:", winCombination);
+        }
+      </script>
+    </body>
+  </html>
+
+  Helpers.js:
+  function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = array[i];
+      array[i] = array[j];
+      array[j] = temp;
+    }
+  
+    return array;
+  }
+  
+  function execFn(fn, args, ctx) {
+    if (typeof fn !== "function") return;
+    fn.apply(ctx, args);
+  }
+
+Const.js:  const REELS = 3;
+const REEL_HEIGHT = 200;
+const SYMBOLS = ["7️⃣", "🍒", "🍑", "🍓", "🍇", "❤️", "🍋", "💎"];
+const SYMBOL_HEIGHT = 100;
+const SPIN_STEP = 30;
+const PAGE = SYMBOLS.length * SYMBOL_HEIGHT;
+const PAGE_OFFSET = PAGE - SYMBOL_HEIGHT;
+const DRAG_FORCE = 0.005;
+const FRICTION_FREE_ITERATIONS = 10;
+const CENTER = REEL_HEIGHT / 2 - SYMBOL_HEIGHT / 2;
+const DRAG_THRESHOLD = 20;
+const SPIN_DELAY = 250;
+const FRAME_RATE = 1000 / 30; // 30 FPS
+const AUTOPLAY_DELAY = 500;
