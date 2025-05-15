@@ -4,7 +4,8 @@
   padding: 0;
 }
 
-:root {
+/* Replace :root with a local class for variables */
+.variables {
   --item-width: 280px; /* Increased from 150px */
   --item-height: 280px; /* Increased from 150px */
   --total-items: 8; /* Number of items */
@@ -345,6 +346,7 @@
   align-items: center;
   background: linear-gradient(135deg, #0a0e12, #141820);
   overflow: hidden;
+  composes: variables;
 }
 
 .columnsContainer {
