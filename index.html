@@ -3,12 +3,12 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Image Slot Machine</title>
+        <title>Zapcre AI Demo</title>
         <link rel="stylesheet" href="./styles.css" />
         <!-- Add GSAP for smooth animations -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-        <!-- Add Extra plugins -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+        <!-- Add Framer Motion -->
+        <script src="https://unpkg.com/framer-motion/dist/framer-motion.js"></script>
         <!-- Add Inter font -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,86 +66,534 @@
         </style>
     </head>
     <body>
-        <h2 class="marquee-heading">Infinite Scroll Marquee</h2>
-        
-        <div class="columns-container">
-            <div class="wrapper" id="column1">
-                <div class="marquee" id="marquee1"></div>
+        <!-- Chat Interface Container -->
+        <div class="chat-container" id="chatContainer">
+            <div class="chat-header">
+                <div class="back-button">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#4F80FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="company-info">
+                    <div class="company-logo">J</div>
+                    <div class="company-details">
+                        <div class="company-name">John Doe</div>
+                        <div class="company-status">Lead Response System</div>
+                    </div>
+                </div>
+                <div class="menu-button">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12V12.01M12 6V6.01M12 18V18.01" stroke="#4F80FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
             </div>
-            <div class="wrapper" id="column2">
-                <div class="marquee" id="marquee2"></div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be added here via JavaScript -->
             </div>
-            <div class="wrapper" id="column3">
-                <div class="marquee" id="marquee3"></div>
+            
+            <div class="chat-input">
+                <input type="text" placeholder="Write a message" disabled>
+                <button class="send-button">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2" stroke="#4F80FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
             </div>
         </div>
+        
+        <!-- Slot Machine Container (Initially Hidden) -->
+        <div class="slot-machine-container" id="slotMachineContainer" style="opacity: 0; pointer-events: none;">
+            <!-- Loading Animation Overlay -->
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-text">Searching for the best properties...</div>
+                <div class="loading-grid">
+                    <div class="grid-cell" id="cell-0-0"></div>
+                    <div class="grid-cell" id="cell-0-1"></div>
+                    <div class="grid-cell" id="cell-0-2"></div>
+                    <div class="grid-cell" id="cell-1-0"></div>
+                    <div class="grid-cell" id="cell-1-1"></div>
+                    <div class="grid-cell" id="cell-1-2"></div>
+                    <div class="grid-cell" id="cell-2-0"></div>
+                    <div class="grid-cell" id="cell-2-1"></div>
+                    <div class="grid-cell" id="cell-2-2"></div>
+                </div>
+            </div>
+            
+            <div class="columns-container">
+                <div class="wrapper" id="column1">
+                    <div class="marquee" id="marquee1"></div>
+                </div>
+                <div class="wrapper" id="column2">
+                    <div class="marquee" id="marquee2"></div>
+                </div>
+                <div class="wrapper" id="column3">
+                    <div class="marquee" id="marquee3"></div>
+                </div>
+            </div>
+        </div>
+        
         <script>
-        // Images to use
-        const images = [
-            './New Images/image1.png',
-            './New Images/image2.png',
-            './New Images/image3.png',
-            './New Images/image4.png',
-            './New Images/image5.png',
-            './New Images/image6.png',
-            './New Images/image7.png',
-            './New Images/OpenAI Playground 2025-05-13 at 20.33.54.png',
-            './New Images/Untitled design (36).png',
-            './New Images/Untitled design (37).png'
-        ];
-        // Shuffle helper
-        function shuffle(arr) {
-            let a = arr.slice();
-            for (let i = a.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
+        // Chat Animation
+        function startChatAnimation() {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // Add all message elements at the beginning but keep them hidden
+            // This prevents DOM reflows and screen "reloads"
+            const messagesHTML = `
+                <!-- User message -->
+                <div class="message-group" id="userMessage">
+                    <div class="message-avatar user">J</div>
+                    <div class="message user-message">
+                        <div class="notification">New Lead Inquiry</div>
+                        <div class="message-text">
+                            Hey! I'm looking for a NNN property with a 6% cap rate. - Under $3M -10 Year Min Remaining -Single Tenant Only -In Texas Can you send me some Offering Memorandums? Thanks!
+                        </div>
+                        <div class="message-time">12:05 PM</div>
+                    </div>
+                </div>
+                
+                <!-- AI typing indicator 1 -->
+                <div class="message-group ai-group" id="typingIndicator1" style="opacity: 0; display: none;">
+                    <div class="message-avatar ai">Z
+                        <div class="avatar-label">Zapcre AI</div>
+                    </div>
+                    <div class="message ai-message">
+                        <div class="typing-indicator">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI response -->
+                <div class="message-group ai-group" id="aiResponse1" style="opacity: 0; display: none;">
+                    <div class="message-avatar ai">Z
+                        <div class="avatar-label">Zapcre AI</div>
+                    </div>
+                    <div class="message ai-message">
+                        <div class="message-text">
+                            Sure, give me a moment to get those!
+                        </div>
+                        <div class="message-time">12:06 PM</div>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.innerHTML = messagesHTML;
+            
+            // Function to show an element with fade-in
+            function showElement(id) {
+                const element = document.getElementById(id);
+                element.style.display = 'flex';
+                // Force reflow
+                void element.offsetHeight;
+                // Fade in
+                element.style.opacity = '1';
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
             }
-            return a;
+            
+            // Function to hide an element with fade-out
+            function hideElement(id) {
+                const element = document.getElementById(id);
+                element.style.opacity = '0';
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 300); // Match transition duration
+            }
+            
+            // Show messages and typing indicators in sequence
+            setTimeout(() => {
+                // Show user message
+                showElement('userMessage');
+                
+                // Show typing indicator
+                setTimeout(() => {
+                    showElement('typingIndicator1');
+                    
+                    // Hide typing indicator and show AI response
+                    setTimeout(() => {
+                        hideElement('typingIndicator1');
+                        
+                        setTimeout(() => {
+                            showElement('aiResponse1');
+                            
+                            // Now animate chat sliding to left and start slot animation
+                            setTimeout(() => {
+                                // Preload images for slot machine before starting animation
+                                preloadSlotMachineImages();
+                                
+                                // Add minimized class before animation
+                                document.getElementById('chatContainer').classList.add('minimized');
+                                
+                                // Save the current chat container position for animation
+                                const chatContainer = document.getElementById('chatContainer');
+                                const rect = chatContainer.getBoundingClientRect();
+                                
+                                // Set will-change to optimize animation
+                                chatContainer.style.willChange = 'transform, width, left';
+                                
+                                // Position chat container on the left side but fully visible
+                                gsap.to("#chatContainer", {
+                                    left: "50%", // Keep centered horizontally
+                                    xPercent: -150, // Move left by 1.5x its width from center
+                                    width: "33%", // Take up 33% of screen width
+                                    height: "90vh", // Maintain original height
+                                    duration: 1.2,
+                                    ease: "power2.inOut",
+                                    onComplete: () => {
+                                        // Clean up will-change after animation
+                                        chatContainer.style.willChange = 'auto';
+                                        
+                                        // Once chat is moved, show slot machine and loading overlay
+                                        const slotContainer = document.getElementById('slotMachineContainer');
+                                        slotContainer.style.opacity = 1;
+                                        slotContainer.style.pointerEvents = "auto";
+                                        
+                                        // Start slot machine initialization (which shows the loading animation first)
+                                        initSlotMachine();
+                                    }
+                                });
+                            }, 2000);
+                        }, 300);
+                    }, 1500);
+                }, 800);
+            }, 1000);
         }
-        // Fill each column with a different shuffled order
-        const marquees = [
-            document.getElementById('marquee1'),
-            document.getElementById('marquee2'),
-            document.getElementById('marquee3')
-        ];
-        const reelOrders = [shuffle(images), shuffle(images), shuffle(images)];
-        const reelOrders2 = [shuffle(images), shuffle(images), shuffle(images)];
-        marquees.forEach((marquee, i) => {
-            marquee.innerHTML = '';
-            // First unique shuffle
-            reelOrders[i].forEach(src => {
-                const div = document.createElement('div');
-                div.className = 'item';
-                const img = document.createElement('img');
+        
+        // Preload images function to ensure smooth animation
+        function preloadSlotMachineImages() {
+            const images = [
+                './New Images/image1.png',
+                './New Images/image2.png',
+                './New Images/image3.png',
+                './New Images/image4.png',
+                './New Images/image5.png',
+                './New Images/image6.png',
+                './New Images/image7.png',
+                './New Images/OpenAI Playground 2025-05-13 at 20.33.54.png',
+                './New Images/Untitled design (36).png',
+                './New Images/Untitled design (37).png',
+                './images copy/a162b98f-f8a7-4119-bc3a-7ea2eb86c73a.png'
+            ];
+            
+            images.forEach(src => {
+                const img = new Image();
                 img.src = src;
-                img.alt = 'Slot Image';
-                div.appendChild(img);
-                marquee.appendChild(div);
             });
-            // Second unique shuffle (for seamless loop)
-            reelOrders2[i].forEach(src => {
-                const div = document.createElement('div');
-                div.className = 'item';
-                const img = document.createElement('img');
-                img.src = src;
-                img.alt = 'Slot Image';
-                div.appendChild(img);
-                marquee.appendChild(div);
+        }
+        
+        // Show and control the loading animation
+        function showLoadingAnimation() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.opacity = '1';
+            
+            // Start the grid cell animation patterns
+            const gridAnimator = new GridAnimator();
+            gridAnimator.start();
+            
+            // Return the animator so we can stop it later
+            return gridAnimator;
+        }
+        
+        // Grid Animation Controller
+        class GridAnimator {
+            constructor() {
+                this.cells = [];
+                for (let row = 0; row < 3; row++) {
+                    for (let col = 0; col < 3; col++) {
+                        this.cells.push(document.getElementById(`cell-${row}-${col}`));
+                    }
+                }
+                this.running = false;
+                this.animationInterval = null;
+                this.currentPattern = 0;
+                this.patterns = [
+                    this.horizontalPattern.bind(this),
+                    this.verticalPattern.bind(this),
+                    this.diagonalPattern.bind(this),
+                    this.spiralPattern.bind(this),
+                    this.randomPattern.bind(this),
+                    this.centerOutPattern.bind(this)
+                ];
+            }
+            
+            // Clear all active cells
+            clearCells() {
+                this.cells.forEach(cell => cell.classList.remove('active'));
+            }
+            
+            // Horizontal pattern (row by row)
+            horizontalPattern(step) {
+                this.clearCells();
+                const row = Math.floor(step / 3) % 3;
+                for (let col = 0; col < 3; col++) {
+                    this.cells[row * 3 + col].classList.add('active');
+                }
+            }
+            
+            // Vertical pattern (column by column)
+            verticalPattern(step) {
+                this.clearCells();
+                const col = Math.floor(step / 3) % 3;
+                for (let row = 0; row < 3; row++) {
+                    this.cells[row * 3 + col].classList.add('active');
+                }
+            }
+            
+            // Diagonal pattern
+            diagonalPattern(step) {
+                this.clearCells();
+                if (step % 2 === 0) {
+                    // Main diagonal (top-left to bottom-right)
+                    for (let i = 0; i < 3; i++) {
+                        this.cells[i * 3 + i].classList.add('active');
+                    }
+                } else {
+                    // Anti-diagonal (top-right to bottom-left)
+                    for (let i = 0; i < 3; i++) {
+                        this.cells[i * 3 + (2 - i)].classList.add('active');
+                    }
+                }
+            }
+            
+            // Spiral pattern (outside to inside or inside to outside)
+            spiralPattern(step) {
+                this.clearCells();
+                const cells = [0, 1, 2, 5, 8, 7, 6, 3, 4]; // Clockwise spiral from outside
+                const reversedCells = [4, 3, 6, 7, 8, 5, 2, 1, 0]; // Inside to outside
+                const sequence = step % 2 === 0 ? cells : reversedCells;
+                
+                const patternStep = Math.floor(step / 2) % 3;
+                for (let i = 0; i <= patternStep; i++) {
+                    this.cells[sequence[i]].classList.add('active');
+                }
+            }
+            
+            // Random pattern (cells light up randomly)
+            randomPattern(step) {
+                this.clearCells();
+                const numCells = 1 + (step % 5); // 1 to 5 cells lit up
+                
+                const shuffled = [...Array(9).keys()]
+                    .map(value => ({ value, sort: Math.random() }))
+                    .sort((a, b) => a.sort - b.sort)
+                    .map(({ value }) => value);
+                    
+                for (let i = 0; i < numCells; i++) {
+                    this.cells[shuffled[i]].classList.add('active');
+                }
+            }
+            
+            // Center out pattern (center cell first, then surrounding cells)
+            centerOutPattern(step) {
+                this.clearCells();
+                // Center is cell 4
+                // First ring is cells 1, 3, 5, 7
+                // Corners are cells 0, 2, 6, 8
+                const patternStep = step % 3;
+                
+                if (patternStep === 0) {
+                    // Center only
+                    this.cells[4].classList.add('active');
+                } else if (patternStep === 1) {
+                    // Center + edges
+                    [1, 3, 4, 5, 7].forEach(idx => this.cells[idx].classList.add('active'));
+                } else {
+                    // All cells
+                    this.cells.forEach(cell => cell.classList.add('active'));
+                }
+            }
+            
+            // Start the animation
+            start() {
+                if (this.running) return;
+                
+                this.running = true;
+                let step = 0;
+                
+                this.animationInterval = setInterval(() => {
+                    // Every 10 steps, change to a new pattern
+                    if (step % 10 === 0) {
+                        this.currentPattern = (this.currentPattern + 1) % this.patterns.length;
+                    }
+                    
+                    // Execute the current pattern
+                    this.patterns[this.currentPattern](step);
+                    
+                    step++;
+                }, 300); // Change pattern every 300ms
+            }
+            
+            // Stop the animation
+            stop() {
+                if (!this.running) return;
+                
+                clearInterval(this.animationInterval);
+                this.running = false;
+                this.clearCells();
+            }
+        }
+        
+        // Update initSlotMachine to show loading animation
+        function initSlotMachine() {
+            // Start the loading animation
+            const gridAnimator = showLoadingAnimation();
+            
+            // Images to use
+            const images = [
+                './New Images/image1.png',
+                './New Images/image2.png',
+                './New Images/image3.png',
+                './New Images/image4.png',
+                './New Images/image5.png',
+                './New Images/image6.png',
+                './New Images/image7.png',
+                './New Images/OpenAI Playground 2025-05-13 at 20.33.54.png',
+                './New Images/Untitled design (36).png',
+                './New Images/Untitled design (37).png'
+            ];
+            
+            // Shuffle helper
+            function shuffle(arr) {
+                let a = arr.slice();
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            }
+            
+            // Fill each column with a different shuffled order
+            const marquees = [
+                document.getElementById('marquee1'),
+                document.getElementById('marquee2'),
+                document.getElementById('marquee3')
+            ];
+            const reelOrders = [shuffle(images), shuffle(images), shuffle(images)];
+            const reelOrders2 = [shuffle(images), shuffle(images), shuffle(images)];
+            
+            marquees.forEach((marquee, i) => {
+                marquee.innerHTML = '';
+                // First unique shuffle
+                reelOrders[i].forEach(src => {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.alt = 'Slot Image';
+                    div.appendChild(img);
+                    marquee.appendChild(div);
+                });
+                // Second unique shuffle (for seamless loop)
+                reelOrders2[i].forEach(src => {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.alt = 'Slot Image';
+                    div.appendChild(img);
+                    marquee.appendChild(div);
+                });
             });
-        });
+            
+            // Start the slot machine animation with a slight delay
+            setTimeout(() => {
+                // Hide loading animation
+                document.getElementById('loadingOverlay').style.opacity = '0';
+                // Stop the grid animator
+                gridAnimator.stop();
+                
+                // Start spinning
+                spinOnce();
+            }, 3000); // Show loading for 3 seconds before starting spin
+        }
+        
         // Slot machine animation (one-time, automatic)
         const ITEM_HEIGHT = 280;
         const SPACING = 30;
-        const SPIN_DISTANCE = (ITEM_HEIGHT + SPACING) * images.length;
+        const SPIN_DISTANCE = (ITEM_HEIGHT + SPACING) * 10; // Using 10 as a base for the images array length
+        
         function spinOnce() {
-            marquees.forEach((marquee) => {
-                marquee.style.transition = 'transform 4s cubic-bezier(0.23, 1, 0.32, 1)';
-                marquee.style.transform = `translateY(-${SPIN_DISTANCE}px)`;
+            const marquees = [
+                document.getElementById('marquee1'),
+                document.getElementById('marquee2'),
+                document.getElementById('marquee3')
+            ];
+            
+            // Prepare for animation by forcing layout calculations first
+            marquees.forEach(marquee => {
+                // Force layout calculation
+                void marquee.offsetHeight;
+                
+                // Apply GPU acceleration
+                marquee.style.willChange = 'transform';
+                marquee.style.transform = 'translateZ(0)';
             });
-            setTimeout(() => highlightAndAnimate(), 4100); // after spin
+            
+            // Sequential stopping for reels (left to right)
+            marquees.forEach((marquee, index) => {
+                // Add staggered delay for each column
+                setTimeout(() => {
+                    // Initial fast spin with better transition curve
+                    marquee.style.transition = 'transform 1.5s cubic-bezier(0.19, 0.69, 0.22, 1)';
+                    
+                    // Use requestAnimationFrame for better performance
+                    requestAnimationFrame(() => {
+                        marquee.style.transform = `translateY(-${SPIN_DISTANCE * 0.6}px)`;
+                        
+                        // Then slow down to final position
+                        setTimeout(() => {
+                            marquee.style.transition = 'transform 2.5s cubic-bezier(0.33, 0.9, 0.33, 1)';
+                            
+                            requestAnimationFrame(() => {
+                                marquee.style.transform = `translateY(-${SPIN_DISTANCE}px)`;
+                            });
+                        }, 1500);
+                    });
+                }, index * 600); // Each column starts with a delay
+            });
+            
+            // Allow enough time for all animation phases to complete
+            setTimeout(() => {
+                // Reset will-change property after animation
+                marquees.forEach(marquee => {
+                    marquee.style.willChange = 'auto';
+                });
+                
+                // Show the selection loading animation
+                const selectionAnimator = showSelectionLoadingAnimation();
+                
+                // After showing loading animation for a while, start highlight process
+                setTimeout(() => {
+                    // Hide loading animation
+                    document.getElementById('loadingOverlay').style.opacity = '0';
+                    
+                    // Clean up selection styles
+                    document.querySelector('.loading-text').classList.remove('selection-phase');
+                    document.querySelectorAll('.grid-cell').forEach(cell => {
+                        cell.classList.remove('selection-mode');
+                    });
+                    
+                    // Stop the grid animator
+                    selectionAnimator.stop();
+                    
+                    // Start highlight animation
+                    highlightAndAnimate();
+                }, 2500); // Show selection loading for 2.5 seconds
+            }, 5000);
         }
+        
         function highlightAndAnimate() {
-            // Find the 3 images visually closest to the center (one per column)
+            const marquees = [
+                document.getElementById('marquee1'),
+                document.getElementById('marquee2'),
+                document.getElementById('marquee3')
+            ];
+            
+            // Find the 3 images closest to center
             const selected = [];
             marquees.forEach((marquee, i) => {
                 const items = marquee.querySelectorAll('.item');
@@ -166,133 +614,723 @@
                 selected.push(closest);
             });
             
-            // Add a blue glow outline to one image at a time
-            function glowOneByOne(idx) {
-                if (idx >= selected.length) {
-                    // After highlighting all, make them rise together
-                    setTimeout(riseAndCombine, 600);
+            // Create clones of selected elements that we'll animate
+            const clones = selected.map((item, index) => {
+                const clone = item.cloneNode(true);
+                clone.classList.add('selected-clone');
+                clone.classList.add(`selected-clone-${index}`);
+                
+                // Get current position
+                const rect = item.getBoundingClientRect();
+                
+                // Style the clone for animation
+                clone.style.position = 'fixed';
+                clone.style.top = rect.top + 'px';
+                clone.style.left = rect.left + 'px';
+                clone.style.width = rect.width + 'px';
+                clone.style.height = rect.height + 'px';
+                clone.style.zIndex = '1000';
+                clone.style.margin = '0';
+                clone.style.transition = 'none';
+                
+                // Add to document
+                document.body.appendChild(clone);
+                
+                return clone;
+            });
+            
+            // Store the center clone and its position for other clones to move to
+            const centerClone = clones[1];
+            const centerPosition = centerClone.getBoundingClientRect();
+            
+            // Hide all original marquee content
+            marquees.forEach(marquee => {
+                // Fade out with transition
+                marquee.style.transition = 'opacity 0.5s ease';
+                marquee.style.opacity = '0';
+            });
+            
+            // Highlight clones one by one
+            function highlightClones(idx) {
+                if (idx >= clones.length) {
+                    // After highlighting all clones, begin the move to center sequence
+                    setTimeout(moveToCenter, 600);
                     return;
                 }
-                selected[idx].classList.add('highlight');
-                setTimeout(() => glowOneByOne(idx + 1), 800); // longer delay between highlights
+                
+                // Apply highlight with CSS transitions
+                const clone = clones[idx];
+                clone.style.transition = 'box-shadow 0.5s ease, transform 0.5s ease';
+                clone.style.boxShadow = '0 0 20px 8px rgba(173, 216, 230, 0.5)';
+                clone.style.transform = 'scale(1.05)';
+                
+                // Add a glow class for extra visual effect
+                clone.classList.add('highlighted-clone');
+                
+                // Audio feedback (optional)
+                const highlightSound = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbgAYGBgYGBgYGBgYGBgYGBgYGBgkJCQkJCQkJCQkJCQkJCQkJCQwMDAwMDAwMDAwMDAwMDAwMDAwP////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAVSAAAAAAAAAbhyUGAyAAAAAAAD/+MoxCgMU6qwAVJoAN4RSHxj+e11mHVgiJzCxJZBM+CjI7D8AiQ5OgAhSA+VR+D4BhHY8H4fhSDkMT5CFrDgPvnCEE/v+e//wj9/9gDi2WSHYQ/A4PCMIwBNDcQJVR/D8H4PEgf/4wjETvN0rKwAWFoAc3gCb/P6M1jLw9kPfC5wISSoxe9DjxwpHEgyAyFbzHXExrHDUIoRxggONHgr9vj21zv//yY0Z2krPGk7k6v//+MoxCcM6+7AAZJoAB0HiRZzRxVrSn2mZ0S6UenZ/5eXnM6LWvNSbvOhiNkAAAAEQAmHYFEGXsFLJcXM0FjYF2IYZuAqSNokS2DcM2QnhQHiTbJHnKyXPGpixkSYRZy0S4a//+MoxC0MWB7cAVl4ABMdY20UGOp6fJNrHxfG0Hte1rTbhCdPtdJrQlqNrGZ6TcX1Ouu0XObU+5m5w4lm3q3C2fHnxWE6KAAAAMAG7tgOJp0UqQsBpfIQoIw0PG7sOc9JGYEoAQ08P/zk//+MoxDgRq+LYAZqAADznheIAiHH9RSCBD/f2rlx7++IM3vWgzvJqZR1TVXWdSoYviFVXWzMprvUZFfav+oFvYDaIUAAAAMmzQijhPg8AwTAVwEpkXHRdCWwaDZsC+QJbYyGo6iZkIvbf/+MoxC8PeB7UAY9oAAAAO8R2iRJvKo/Gm5qSX5/fX1U6u/tZltZ0y7VTK8p4ndrGoAABAMAKIxQOwljoOAImBdATZJY8I2Cy4D3xJ0FmT6zJ8wVkGTkbN0xNkOvUb/v1v////v//+MoxCoPG+7EAY9gAP//r////qyqAAEBABCGvIQBMlN6bJMZYMuFDiCAYIcFAD5AFijCWVoq8L2HV1n0frLzTXeUlj8Hx7FdSlRAAIgAYxG4Y8JgkMXDDQwLMRjBgQWDG0wBD2AYHf/w//+MoxDAOMBq4AY9gAANLEfKHNmwDYNSNLJIACpTlcmFCZIICoADEgDwqACAEwQEAyeijCQHjR4GE8UFg4ELt///YuPKXiVqxPqsO//9f////+v9ygACAYARsHQUYfAwimDgOYRAKZN//+MoxDYNQ+rEAYlYAJh4rGOA8YYBxCIKg+EgJDRwrCUzDUhQ9JATAgDqxBoJpQyxCkCPu1aVo1FdNqAI+yyXr//KDvU/r///n//+qAEAAQDAAXyAYMBwGMExAMGAPVNMPQCAgAAGKhf/5//+MoxEENkV6oAd54AH/TlTd/63OdUx06MTMN8rEb29PEK5UFo0N9d6K/+hnL9Xd/1X+r/5zFFCxP//+WlAAEA3A8gqHkj9FCRchgyBuiJOJYoQYCKX4f3GAsJiMiswYwIMGRNbcTIX8c//+MoxFUVKbqgAOZSuUcJdbJVsukPGfqVpT/OWvT/S9+3//+YgAAAAAADKEBMPEgwPNZQwBFC0FD0hMEgRDkJKNQkG2/8nbjaqeaI9Vc7Ui3/PuWKL02mS1u9yttub7dtV9///9aAAAI//+MoxCcPMWK0ANYeuQYADcBNVFTfAgZrC15aRNChQkR80KcCCDDqCQYlKWNQsaHDyQN+HJU37PuNPkv///6oAQAHgXY8MkB70xCBjwkEIjAwvIQGAkYMAxMZaZmvlAUmAxEDAsDxDogM//+MoxCUOAa60ANYeuRCBBwSBF4S4CwAEiAgM9W46FQTGCrL/YRcKL2/CjG///1gABgAAHAwwGDB0MchowjHy1ZMaAsw0MDEQGNgwIEF4xp0DJAYMeCGfKOE+WyFCJCb8////+qAAAA//+MoxCsNGda4ANaNDAAAGQGFmCQCYDBhhcRmcCodwpkTm8xA5AzBzUDf5QgCv////+sADQAAAO1pSLLMACgwSAwZDQAHmkBYAAZiAACwQQAAAAAA//ioIuGK/4gIAAAAAAAAAAAAAAA=');
+                highlightSound.volume = 0.2;
+                highlightSound.play().catch(e => console.log("Audio play prevented by browser"));
+                
+                // Move to next clone after delay
+                setTimeout(() => highlightClones(idx + 1), 800);
             }
             
-            // Start the highlight sequence
-            glowOneByOne(0);
+            // Start highlighting process
+            setTimeout(() => highlightClones(0), 500);
             
-            // After highlighting all, make them rise, combine, and exit
-            function riseAndCombine() {
-                // Make all selected items rise at once
-                selected.forEach((item, i) => {
-                    item.classList.add('rise');
-                    // Add center-item class to the middle item (index 1)
-                    if (i === 1) {
-                        item.classList.add('center-item');
-                    }
+            // Move side clones to center
+            function moveToCenter() {
+                // First move up slightly
+                clones.forEach(clone => {
+                    clone.style.transition = 'transform 0.8s cubic-bezier(0.23, 1, 0.32, 1)';
+                    clone.style.transform = 'scale(1.05) translateY(-40px)';
                 });
                 
-                // Fade out non-selected items
-                marquees.forEach(marquee => {
-                    marquee.querySelectorAll('.item').forEach(item => {
-                        if (!selected.includes(item)) {
-                            item.classList.add('fade-out');
-                        }
-                    });
-                });
-                
-                // After rise animation, move side items to center
+                // After moving up, begin the converge to center animation
                 setTimeout(() => {
-                    // Get position of center item for other items to move to
-                    const centerItem = selected[1];
-                    const centerRect = centerItem.getBoundingClientRect();
+                    // Get the left and right clones
+                    const leftClone = clones[0];
+                    const rightClone = clones[2];
                     
-                    // Get positions of left and right items
-                    const leftItem = selected[0];
-                    const rightItem = selected[2];
+                    // Prepare for movement to center
+                    leftClone.style.transition = 'left 0.8s cubic-bezier(0.16, 1, 0.3, 1), top 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+                    rightClone.style.transition = 'left 0.8s cubic-bezier(0.16, 1, 0.3, 1), top 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
                     
-                    // Calculate the X translation needed to center
-                    const leftRect = leftItem.getBoundingClientRect();
-                    const rightRect = rightItem.getBoundingClientRect();
+                    // Move to center position
+                    leftClone.style.left = centerPosition.left + 'px';
+                    rightClone.style.left = centerPosition.left + 'px';
                     
-                    const leftToCenter = centerRect.left - leftRect.left;
-                    const rightToCenter = centerRect.left - rightRect.left;
-                    
-                    // Use GSAP to animate items moving to center
-                    gsap.to(leftItem, {
-                        x: leftToCenter,
-                        duration: 0.8,
-                        ease: "power3.inOut"
-                    });
-                    
-                    gsap.to(rightItem, {
-                        x: rightToCenter,
-                        duration: 0.8,
-                        ease: "power3.inOut",
-                        onComplete: () => {
-                            // Create a combined container
-                            const combinedContainer = document.createElement('div');
-                            combinedContainer.className = 'combined-container';
-                            document.body.appendChild(combinedContainer);
-                            
-                            // Clone the center item for the combined animation
-                            const combinedItem = centerItem.cloneNode(true);
-                            combinedContainer.appendChild(combinedItem);
-                            
-                            // Hide the original items
-                            gsap.to([leftItem, centerItem, rightItem], {
-                                opacity: 0,
-                                duration: 0.5
-                            });
-                            
-                            // Animate the combined item going down
-                            gsap.to(combinedContainer, {
-                                y: window.innerHeight,
-                                duration: 1.5,
-                                ease: "power2.in",
-                                delay: 0.5,
-                                onComplete: () => {
-                                    // Create and animate the upwards image
-                                    const upwardsContainer = document.createElement('div');
-                                    upwardsContainer.className = 'upwards-container';
-                                    document.body.appendChild(upwardsContainer);
-                                    
-                                    // Create image wrapper for glow effect
-                                    const imageWrapper = document.createElement('div');
-                                    imageWrapper.className = 'upwards-image-wrapper';
-                                    upwardsContainer.appendChild(imageWrapper);
-                                    
-                                    // Create the image using the new filename
-                                    const upwardsImage = document.createElement('img');
-                                    upwardsImage.src = './images copy/a162b98f-f8a7-4119-bc3a-7ea2eb86c73a.png';
-                                    upwardsImage.alt = 'Offering Memorandum';
-                                    imageWrapper.appendChild(upwardsImage);
-                                    
-                                    // Animation timeline
-                                    const tl = gsap.timeline();
-                                    
-                                    // Initial state
-                                    gsap.set(upwardsContainer, {
-                                        bottom: '-100%',
-                                        height: 'auto'
-                                    });
-                                    
-                                    // Animate it coming up to halfway
-                                    tl.to(upwardsContainer, {
-                                        bottom: '-10%',
-                                        duration: 1.8,
-                                        ease: "power2.out"
-                                    });
-                                }
-                            });
-                        }
-                    });
-                    
+                    // After converging to center, drop them all
+                    setTimeout(dropClones, 1000);
                 }, 800);
             }
+            
+            // Drop clones down off-screen
+            function dropClones() {
+                clones.forEach(clone => {
+                    // Change transition for drop animation
+                    clone.style.transition = 'top 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s ease';
+                    
+                    // Move down below screen
+                    clone.style.top = (window.innerHeight + 100) + 'px';
+                    
+                    // Fade out as they drop
+                    setTimeout(() => {
+                        clone.style.opacity = '0';
+                    }, 300);
+                });
+                
+                // After clones drop, show the memorandum loading animation
+                setTimeout(() => {
+                    // Remove clones from DOM when animations complete
+                    clones.forEach(clone => clone.remove());
+                    
+                    // Show memorandum loading animation
+                    const memorandumAnimator = showMemorandumLoadingAnimation();
+                    
+                    // After showing memorandum loading animation, show offering memorandum
+                    setTimeout(() => {
+                        // Hide loading animation
+                        document.getElementById('loadingOverlay').style.opacity = '0';
+                        
+                        // Clean up memorandum styles
+                        document.querySelector('.loading-text').classList.remove('memorandum-phase');
+                        document.querySelectorAll('.grid-cell').forEach(cell => {
+                            cell.classList.remove('memorandum-mode');
+                        });
+                        
+                        // Stop the memorandum animator
+                        memorandumAnimator.stop();
+                        
+                        // Show offering memorandum
+                        showOfferingMemorandum();
+                    }, 2500); // Show memorandum loading for 2.5 seconds
+                }, 1500);
+            }
+            
+            // Function to show offering memorandum
+            function showOfferingMemorandum() {
+                // Create container
+                const container = document.createElement('div');
+                container.className = 'upwards-container';
+                container.innerHTML = `
+                    <div class="offering-text">OFFERING MEMORANDUMS</div>
+                    <div class="upwards-image-wrapper">
+                        <img src="./images copy/a162b98f-f8a7-4119-bc3a-7ea2eb86c73a.png" alt="Offering Memorandums">
+                    </div>
+                `;
+                
+                // Set will-change for better performance
+                container.style.willChange = 'transform, bottom';
+                
+                // Set initial position
+                container.style.bottom = '-100%';
+                container.style.transition = 'bottom 1.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                document.body.appendChild(container);
+                
+                // Force reflow before animation
+                void container.offsetHeight;
+                
+                // Move up with requestAnimationFrame for better performance
+                requestAnimationFrame(() => {
+                    container.style.bottom = '-10%';
+                    
+                    // Fade in text separately with requestAnimationFrame
+                    const text = container.querySelector('.offering-text');
+                    text.style.willChange = 'opacity, transform';
+                    text.style.transform = 'translateY(20px)';
+                    text.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
+                    
+                    setTimeout(() => {
+                        requestAnimationFrame(() => {
+                            text.style.opacity = '1';
+                            text.style.transform = 'translateY(0)';
+                            
+                            // WAIT FOR FULL OFFERING MEMORANDUM DOCUMENT TO BE VISIBLE FIRST
+                            // Let it be visible for a while
+                            setTimeout(() => {
+                                // NOW show the email generation animation
+                                const emailAnimator = showEmailGenerationAnimation();
+                                
+                                // After email generation animation, fade things out
+                                setTimeout(() => {
+                                    // Hide loading animation
+                                    document.getElementById('loadingOverlay').style.opacity = '0';
+                                    
+                                    // Clean up email styles
+                                    document.querySelector('.loading-text').classList.remove('email-phase');
+                                    document.querySelectorAll('.grid-cell').forEach(cell => {
+                                        cell.classList.remove('email-mode');
+                                    });
+                                    
+                                    // Stop the email animator
+                                    emailAnimator.stop();
+                                    
+                                    // Fade out the offering memorandum and text
+                                    container.style.transition = 'opacity 1s ease';
+                                    container.style.opacity = '0';
+                                    text.style.transition = 'opacity 1s ease';
+                                    text.style.opacity = '0';
+                                    
+                                    // After fade out completes, restore chat
+                                    setTimeout(() => {
+                                        container.style.willChange = 'auto';
+                                        text.style.willChange = 'auto';
+                                        
+                                        // Restore chat interface
+                                        restoreChatInterface();
+                                    }, 1000);
+                                }, 3000); // Email generation animation duration
+                            }, 3000); // Time to display offering memorandum before starting email animation
+                        });
+                    }, 600);
+                });
+            }
         }
+        
+        // Add a second loading animation for the selection process
+        function showSelectionLoadingAnimation() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            // Change the text for this phase and add selection phase class
+            const loadingText = document.querySelector('.loading-text');
+            loadingText.textContent = "Choosing the best properties...";
+            loadingText.classList.add('selection-phase');
+            loadingOverlay.style.opacity = '1';
+            
+            // Add selection mode class to all grid cells to use different style
+            const gridCells = document.querySelectorAll('.grid-cell');
+            gridCells.forEach(cell => cell.classList.add('selection-mode'));
+            
+            // Start the grid cell animation with selection patterns
+            const gridAnimator = new SelectionGridAnimator();
+            gridAnimator.start();
+            
+            // Return the animator so we can stop it later
+            return gridAnimator;
+        }
+        
+        // Selection Grid Animation Controller with different patterns
+        class SelectionGridAnimator extends GridAnimator {
+            constructor() {
+                super(); // Initialize base properties
+                this.currentPattern = 0;
+                this.patterns = [
+                    this.checkmarkPattern.bind(this),
+                    this.xPattern.bind(this),
+                    this.scanningPattern.bind(this),
+                    this.cornerToCenterPattern.bind(this),
+                    this.flashingPattern.bind(this),
+                    this.analyzingPattern.bind(this)
+                ];
+            }
+            
+            // Checkmark pattern (resembles a check)
+            checkmarkPattern(step) {
+                this.clearCells();
+                const checkmarkCells = [6, 7, 4, 2, 0]; // Forms a checkmark shape
+                const patternStep = step % checkmarkCells.length;
+                
+                for (let i = 0; i <= patternStep; i++) {
+                    this.cells[checkmarkCells[i]].classList.add('active');
+                }
+            }
+            
+            // X pattern (forms an X)
+            xPattern(step) {
+                this.clearCells();
+                const patternStep = step % 2;
+                
+                if (patternStep === 0) {
+                    // Main diagonal
+                    for (let i = 0; i < 3; i++) {
+                        this.cells[i * 3 + i].classList.add('active');
+                    }
+                } else {
+                    // Anti-diagonal
+                    for (let i = 0; i < 3; i++) {
+                        this.cells[i * 3 + (2 - i)].classList.add('active');
+                    }
+                }
+            }
+            
+            // Scanning pattern (simulates scanning rows and columns)
+            scanningPattern(step) {
+                this.clearCells();
+                const totalSteps = 6; // 3 rows + 3 columns
+                const currentStep = step % totalSteps;
+                
+                if (currentStep < 3) {
+                    // Highlight a row
+                    for (let col = 0; col < 3; col++) {
+                        this.cells[currentStep * 3 + col].classList.add('active');
+                    }
+                } else {
+                    // Highlight a column
+                    const col = currentStep - 3;
+                    for (let row = 0; row < 3; row++) {
+                        this.cells[row * 3 + col].classList.add('active');
+                    }
+                }
+            }
+            
+            // Corner to center pattern (like zooming in)
+            cornerToCenterPattern(step) {
+                this.clearCells();
+                const patternStep = step % 3;
+                
+                if (patternStep === 0) {
+                    // Corners only
+                    [0, 2, 6, 8].forEach(idx => this.cells[idx].classList.add('active'));
+                } else if (patternStep === 1) {
+                    // Edges
+                    [1, 3, 5, 7].forEach(idx => this.cells[idx].classList.add('active'));
+                } else {
+                    // Center
+                    this.cells[4].classList.add('active');
+                }
+            }
+            
+            // Flashing pattern (random cells flash in groups)
+            flashingPattern(step) {
+                this.clearCells();
+                // Group flashing based on step
+                const groups = [
+                    [0, 1, 2], // Top row
+                    [2, 5, 8], // Right column
+                    [6, 7, 8], // Bottom row
+                    [0, 3, 6], // Left column
+                    [4],       // Center
+                    [0, 4, 8], // Main diagonal
+                    [2, 4, 6]  // Anti-diagonal
+                ];
+                
+                const groupIndex = step % groups.length;
+                groups[groupIndex].forEach(idx => this.cells[idx].classList.add('active'));
+            }
+            
+            // Analyzing pattern (simulates detailed analysis)
+            analyzingPattern(step) {
+                this.clearCells();
+                const sequence = [4, 1, 5, 7, 3, 0, 2, 8, 6]; // Center first, then edges, then corners
+                const activeCells = step % 10; // 0-9, where 9 means all cells
+                
+                for (let i = 0; i < Math.min(activeCells, 9); i++) {
+                    this.cells[sequence[i]].classList.add('active');
+                }
+            }
+        }
+        
+        // Function to show memorandum loading animation
+        function showMemorandumLoadingAnimation() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            // Change the text for this phase and add memorandum phase class
+            const loadingText = document.querySelector('.loading-text');
+            loadingText.textContent = "Generating branded offering memorandums...";
+            loadingText.classList.add('memorandum-phase');
+            loadingOverlay.style.opacity = '1';
+            
+            // Add memorandum mode class to all grid cells to use different style
+            const gridCells = document.querySelectorAll('.grid-cell');
+            gridCells.forEach(cell => {
+                cell.classList.remove('selection-mode'); // Remove any previous mode
+                cell.classList.add('memorandum-mode');
+            });
+            
+            // Start the grid cell animation with memorandum patterns
+            const gridAnimator = new MemorandumGridAnimator();
+            gridAnimator.start();
+            
+            // Return the animator so we can stop it later
+            return gridAnimator;
+        }
+        
+        // Memorandum Grid Animation Controller with different patterns
+        class MemorandumGridAnimator extends GridAnimator {
+            constructor() {
+                super(); // Initialize base properties
+                this.currentPattern = 0;
+                this.patterns = [
+                    this.squareGrowthPattern.bind(this),
+                    this.wavesPattern.bind(this),
+                    this.documentPattern.bind(this),
+                    this.buildingPattern.bind(this)
+                ];
+            }
+            
+            // Square growth pattern (expands from center)
+            squareGrowthPattern(step) {
+                this.clearCells();
+                const patternStep = step % 3;
+                
+                if (patternStep === 0) {
+                    // Center only
+                    this.cells[4].classList.add('active');
+                } else if (patternStep === 1) {
+                    // Center + middle edges
+                    [1, 3, 4, 5, 7].forEach(idx => this.cells[idx].classList.add('active'));
+                } else {
+                    // All cells
+                    this.cells.forEach(cell => cell.classList.add('active'));
+                }
+            }
+            
+            // Waves pattern (horizontal waves moving down)
+            wavesPattern(step) {
+                this.clearCells();
+                const currentRow = step % 3;
+                for (let col = 0; col < 3; col++) {
+                    this.cells[currentRow * 3 + col].classList.add('active');
+                }
+            }
+            
+            // Document pattern (simulates document scanning)
+            documentPattern(step) {
+                this.clearCells();
+                const patternStep = step % 5;
+                
+                if (patternStep === 0) {
+                    // Top row (header)
+                    [0, 1, 2].forEach(idx => this.cells[idx].classList.add('active'));
+                } else if (patternStep === 1) {
+                    // Middle row (content line 1)
+                    [3, 4, 5].forEach(idx => this.cells[idx].classList.add('active'));
+                } else if (patternStep === 2) {
+                    // Bottom row (content line 2)
+                    [6, 7, 8].forEach(idx => this.cells[idx].classList.add('active'));
+                } else if (patternStep === 3) {
+                    // Left column (margin)
+                    [0, 3, 6].forEach(idx => this.cells[idx].classList.add('active'));
+                } else {
+                    // Right column (margin)
+                    [2, 5, 8].forEach(idx => this.cells[idx].classList.add('active'));
+                }
+            }
+            
+            // Building pattern (builds document from top to bottom)
+            buildingPattern(step) {
+                const totalRows = 3;
+                const currentRows = Math.min(totalRows, Math.floor(step / 2) + 1);
+                
+                this.clearCells();
+                
+                for (let row = 0; row < currentRows; row++) {
+                    for (let col = 0; col < 3; col++) {
+                        this.cells[row * 3 + col].classList.add('active');
+                    }
+                }
+            }
+        }
+        
+        // Email Grid Animation Controller with different patterns
+        class EmailGridAnimator extends GridAnimator {
+            constructor() {
+                super(); // Initialize base properties
+                this.currentPattern = 0;
+                this.patterns = [
+                    this.crossPattern.bind(this),
+                    this.pulsePattern.bind(this),
+                    this.rotationPattern.bind(this),
+                    this.wavePattern.bind(this)
+                ];
+            }
+            
+            // Cross pattern focusing on 2, 4, 6, 8 (the middle of each edge)
+            crossPattern(step) {
+                this.clearCells();
+                const crossCells = [1, 3, 5, 7]; // Center cross (2 4 6 8 in zero-indexed would be 1,3,5,7)
+                const patternStep = step % 3;
+                
+                if (patternStep === 0) {
+                    // Vertical line (1, 7)
+                    [1, 7].forEach(idx => this.cells[idx].classList.add('active'));
+                } else if (patternStep === 1) {
+                    // Horizontal line (3, 5)
+                    [3, 5].forEach(idx => this.cells[idx].classList.add('active'));
+                } else {
+                    // All cross cells
+                    crossCells.forEach(idx => this.cells[idx].classList.add('active'));
+                }
+            }
+            
+            // Pulse pattern on middle edges
+            pulsePattern(step) {
+                this.clearCells();
+                // Boxes 2,4,6,8 in zero-indexed are 1,3,5,7
+                const edgeCells = [1, 3, 5, 7];
+                
+                if (step % 2 === 0) {
+                    // Activate all edge cells
+                    edgeCells.forEach(idx => this.cells[idx].classList.add('active'));
+                } else {
+                    // Activate only center
+                    this.cells[4].classList.add('active');
+                }
+            }
+            
+            // Rotation pattern around center
+            rotationPattern(step) {
+                this.clearCells();
+                // Boxes 2,4,6,8 in zero-indexed are 1,3,5,7
+                const edgeCells = [1, 3, 5, 7];
+                const position = step % 4;
+                
+                // Activate the current position
+                this.cells[edgeCells[position]].classList.add('active');
+                
+                // Always keep center active
+                this.cells[4].classList.add('active');
+            }
+            
+            // Wave pattern flowing through edges
+            wavePattern(step) {
+                this.clearCells();
+                // Wave sequence through middle edges
+                const sequence = [1, 3, 5, 7];
+                const indices = step % 4;
+                
+                for (let i = 0; i <= indices; i++) {
+                    this.cells[sequence[i]].classList.add('active');
+                }
+            }
+        }
+        
+        // Function to show email generation animation
+        function showEmailGenerationAnimation() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            // Change the text for this phase
+            const loadingText = document.querySelector('.loading-text');
+            loadingText.textContent = "Generating email with OM's...";
+            loadingText.classList.add('email-phase');
+            
+            // Make the overlay darker for email generation phase and place it on top
+            loadingOverlay.style.backgroundColor = 'rgba(10, 14, 18, 0.92)';
+            loadingOverlay.style.opacity = '1';
+            loadingOverlay.style.zIndex = '1500'; // Very high z-index to be on top of almost everything
+            
+            // Add email mode class to all grid cells to use different style
+            const gridCells = document.querySelectorAll('.grid-cell');
+            gridCells.forEach(cell => {
+                cell.classList.remove('memorandum-mode'); // Remove any previous mode
+                cell.classList.add('email-mode');
+            });
+            
+            // Start the grid cell animation with email patterns
+            const gridAnimator = new EmailGridAnimator();
+            gridAnimator.start();
+            
+            // Return the animator so we can stop it later
+            return gridAnimator;
+        }
+        
+        function restoreChatInterface() {
+            const chatContainer = document.getElementById('chatContainer');
+            const slotContainer = document.getElementById('slotMachineContainer');
+            
+            // Hide slot machine and clear background
+            slotContainer.style.opacity = 0;
+            slotContainer.style.pointerEvents = 'none';
+            
+            // Restore chat container to full size
+            gsap.to(chatContainer, {
+                left: '50%',
+                xPercent: -50,
+                width: '90%',
+                height: '90vh',
+                duration: 1.2,
+                ease: 'power2.inOut',
+                onComplete: () => {
+                    // Show typing animation
+                    showTypingAnimation();
+                }
+            });
+        }
+        
+        function showTypingAnimation() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'message-group ai-group';
+            typingIndicator.id = 'typingIndicator';
+            typingIndicator.innerHTML = `
+                <div class="message-avatar ai">Z
+                    <div class="avatar-label">Zapcre AI</div>
+                </div>
+                <div class="message ai-message">
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(typingIndicator);
+            
+            // Scroll to the bottom of the chat container
+            scrollToBottom();
+            
+            // Show typing indicator for a bit
+            setTimeout(() => {
+                typingIndicator.style.opacity = '1';
+                
+                // After typing, show the message
+                setTimeout(() => {
+                    // Remove typing indicator
+                    typingIndicator.remove();
+                    showPropertyMessage();
+                }, 2000);
+            }, 500);
+        }
+        
+        // Helper function to scroll to the bottom of the chat container
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function showPropertyMessage() {
+            const chatMessages = document.getElementById('chatMessages');
+            const propertyMessage = document.createElement('div');
+            propertyMessage.className = 'message-group ai-group';
+            propertyMessage.innerHTML = `
+                <div class="message-avatar ai">Z
+                    <div class="avatar-label">Zapcre AI</div>
+                </div>
+                <div class="message ai-message">
+                    <div class="message-text">
+                        I found some properties matching your description here they are with their Offering Memorandums:
+                        <div class="property-cards">
+                            <div class="property-card">
+                                <strong>Property 1</strong><br>
+                                6% cap rate, $2.5M, 10-year lease, Single Tenant, Texas<br>
+                                <a href="#" class="memorandum-link">Offering Memorandum 1.pdf</a>
+                            </div>
+                            <div class="property-card">
+                                <strong>Property 2</strong><br>
+                                5.8% cap rate, $2.8M, 12-year lease, Single Tenant, Texas<br>
+                                <a href="#" class="memorandum-link">Offering Memorandum 2.pdf</a>
+                            </div>
+                            <div class="property-card">
+                                <strong>Property 3</strong><br>
+                                6.2% cap rate, $2.9M, 15-year lease, Single Tenant, Texas<br>
+                                <a href="#" class="memorandum-link">Offering Memorandum 3.pdf</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="message-time">12:07 PM</div>
+                </div>
+            `;
+            chatMessages.appendChild(propertyMessage);
+            
+            // Scroll to the bottom of the chat container
+            scrollToBottom();
+            
+            // After showing properties, show user response with a longer delay
+            setTimeout(() => {
+                showUserResponse();
+            }, 5000); // Increased from 2000 to 5000 for more delay
+        }
+        
+        function showUserResponse() {
+            const chatMessages = document.getElementById('chatMessages');
+            const userResponse = document.createElement('div');
+            userResponse.className = 'message-group';
+            userResponse.innerHTML = `
+                <div class="message-avatar user">J</div>
+                <div class="message user-message">
+                    <div class="message-text">
+                        Wow! Thanks, that was quick!
+                    </div>
+                    <div class="message-info">
+                        <div class="message-time">12:09 PM</div>
+                        <div class="message-status">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 13L9 17L19 7" stroke="#4F80FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(userResponse);
+            
+            // Scroll to the bottom of the chat container
+            scrollToBottom();
+            
+            // Show restart overlay after 3 seconds
+            setTimeout(() => {
+                showRestartOverlay();
+            }, 3000);
+        }
+        
+        // Function to display restart overlay
+        function showRestartOverlay() {
+            // Create the overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'restart-overlay';
+            
+            // Create the restart button
+            const restartButton = document.createElement('button');
+            restartButton.className = 'restart-button';
+            restartButton.textContent = 'Restart Demo';
+            
+            // Add click event to restart button
+            restartButton.addEventListener('click', () => {
+                window.location.reload();
+            });
+            
+            // Add button to overlay
+            overlay.appendChild(restartButton);
+            
+            // Add overlay to body
+            document.body.appendChild(overlay);
+            
+            // Trigger reflow and add visible class for animation
+            void overlay.offsetHeight;
+            overlay.classList.add('visible');
+        }
+        
+        // Start the sequence when the page loads
         window.onload = () => {
-            // Start the slot machine animation with a slight delay
-            setTimeout(spinOnce, 100);
+            startChatAnimation();
         };
         </script>
     </body>

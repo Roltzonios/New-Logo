@@ -10,20 +10,365 @@ html, body {
     --item-width: 280px; /* Increased from 150px */
     --item-height: 280px; /* Increased from 150px */
     --total-items: 8; /* Number of items */
-    --spacing: 30px; /* Increased spacing between items */
+    --spacing: 50px; /* Increased spacing between items */
     --column-padding: 80px; /* Explicit equal gap between columns */
+    --blue-primary: #4F80FF;
+    --blue-secondary: #3A68E0;
+    --blue-light: #ECF1FF;
+    --blue-dark: #18243F;
+    --text-light: #F5F5F5;
+    --text-dark: #0A0E12;
+}
+
+body {
+    background: #0A0E12;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Chat Interface Styles - Email Response Look with dark theme */
+.chat-container {
+    width: 90%;
+    max-width: 700px;
+    height: 90vh;
+    max-height: 700px;
+    background: #0F1419;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 2000; /* Higher than everything else */
+    transition: all 0.3s ease;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+}
+
+/* For when the chat is minimized to the left - only adjust width-related properties */
+.chat-container.minimized {
+    font-size: 95%;
+}
+
+.chat-container.minimized .message {
+    max-width: 90%; /* Allow messages to use more space in the narrower container */
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #141820;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.back-button, .menu-button {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.company-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.company-logo {
+    width: 40px;
+    height: 40px;
+    background: #2D3854;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 20px;
+    border: 2px solid rgba(79, 128, 255, 0.3);
+}
+
+.avatar-label {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #4F80FF;
+    color: white;
+    font-size: 8px;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-weight: 600;
+    z-index: 2;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.company-details {
+    margin-left: 12px;
+}
+
+.company-name {
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.company-status {
+    color: #A0A9BA;
+    font-size: 13px;
+    margin-top: 2px;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    background: linear-gradient(to bottom, #0F1419, #111821);
+}
+
+.message-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    width: 100%;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: message-appear 0.5s forwards;
+    transition: opacity 0.3s ease;
+}
+
+/* For messages that we manually show/hide */
+.message-group[id] {
+    animation: none;
+    transform: translateY(0);
+}
+
+/* Message appear animation */
+@keyframes message-appear {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Typing indicator animation */
+.typing-indicator {
+    display: inline-block;
+    position: relative;
+    width: 60px;
+    height: 30px;
+    margin-right: auto;
+}
+
+.typing-indicator span {
+    height: 8px;
+    width: 8px;
+    background: rgba(255, 255, 255, 0.6);
+    display: inline-block;
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: typing-bounce 1.2s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing-bounce {
+    0%, 100% {
+        transform: translateY(0);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translateY(-5px);
+        opacity: 1;
+    }
+}
+
+/* Reverse for AI messages (ZAPCRE AI) */
+.message-group.ai-group {
+    flex-direction: row-reverse;
+}
+
+.message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.message-avatar.user {
+    background-color: #4F80FF;
+    color: white;
+}
+
+.message-avatar.ai {
+    background-color: #3A68E0;
+    color: white;
+}
+
+.message {
+    max-width: 75%;
+    padding: 16px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.user-message {
+    background-color: #2D3854;
+    color: white;
+    border-left: 3px solid #4F80FF;
+}
+
+.ai-message {
+    background: linear-gradient(135deg, #3A68E0, #4F80FF);
+    color: white;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.message-text {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.message-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    margin-top: 6px;
+}
+
+.message-time {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 0;
+    text-align: right;
+}
+
+.message-status {
+    display: flex;
+    align-items: center;
+}
+
+.notification {
+    background: rgba(79, 128, 255, 0.2);
+    color: #6B9BFF;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.chat-input {
+    padding: 16px;
+    background: #141820;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    gap: 12px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 12px 16px;
+    background: #1A1F28;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+}
+
+.chat-input input::placeholder {
+    color: #6C7A93;
+}
+
+.send-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #4F80FF;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.send-button svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: white;
+}
+
+/* Slot Machine Styles - Dark Theme */
+.slot-machine-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 66%;
+    height: 100%;
+    transition: opacity 1s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0A0E12, #141820);
+    overflow: hidden;
 }
 
 .columns-container {
     display: grid;
     grid-template-columns: repeat(3, var(--item-width));
     justify-content: center;
-    column-gap: 80px; /* Explicit equal gap between columns */
+    column-gap: 25px; /* Reduced to 25px for very close spacing */
     width: 100%;
     height: 100vh;
     padding: 0;
-    margin: 0;
     overflow: visible;
+    will-change: transform;
+    transform: translateZ(0);
+    position: relative;
+}
+
+/* Add subtle glow to slot machine container */
+.slot-machine-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(79, 128, 255, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
 }
 
 .wrapper {
@@ -34,19 +379,8 @@ html, body {
     will-change: transform;
     padding: 0;
     margin: 0;
-}
-
-.wrapper:nth-child(2) {
-    transform: rotate(180deg);
-}
-
-.wrapper:nth-child(2) .item img {
-    transform: rotate(180deg);
-}
-
-body {
-    background: #0A0E12;
-    overflow: hidden;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .marquee {
@@ -58,6 +392,8 @@ body {
     flex-direction: column;
     will-change: transform;
     overflow: visible;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .item {
@@ -69,6 +405,50 @@ body {
     background-color: #fff;
     overflow: visible;
     position: relative;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* Selected clone styles for animation */
+.selected-clone {
+    position: fixed;
+    z-index: 1000;
+    border-radius: 1px;
+    background-color: #fff;
+    overflow: visible;
+    will-change: transform, opacity, box-shadow, top;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+
+.highlighted-clone {
+    box-shadow: 0 0 25px 12px rgba(137, 207, 240, 0.4), 0 0 40px 16px rgba(100, 180, 255, 0.25) !important;
+    z-index: 1010;
+    animation: pulseGlowEnhanced 1.5s infinite alternate;
+}
+
+@keyframes pulseGlowEnhanced {
+    0% {
+        box-shadow: 0 0 25px 12px rgba(137, 207, 240, 0.4), 0 0 40px 16px rgba(100, 180, 255, 0.25);
+    }
+    100% {
+        box-shadow: 0 0 35px 15px rgba(137, 207, 240, 0.5), 0 0 50px 20px rgba(100, 180, 255, 0.35);
+    }
+}
+
+.selected-clone img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 1px;
+    backface-visibility: hidden;
+}
+
+.item.highlighted {
+    position: absolute; /* Allow absolute positioning during animation */
+    z-index: 100;
 }
 
 .item img {
@@ -76,6 +456,7 @@ body {
     height: 100%;
     object-fit: cover;
     border-radius: 1px;
+    backface-visibility: hidden;
 }
 
 .marquee-heading {
@@ -103,27 +484,29 @@ body {
     position: relative;
     outline: none;
     border: none;
-    /* Baby blue gradient glow */
+    /* Baby blue gradient glow - enhanced */
     background-color: rgba(173, 216, 230, 0.05);
     box-shadow: 
-        inset 0 0 15px 5px rgba(173, 216, 230, 0.15),
-        0 0 20px 8px rgba(137, 207, 240, 0.2),
-        0 0 30px 12px rgba(100, 180, 255, 0.1);
+        inset 0 0 20px 8px rgba(173, 216, 230, 0.2),
+        0 0 30px 12px rgba(137, 207, 240, 0.3),
+        0 0 40px 16px rgba(100, 180, 255, 0.15);
     z-index: 10;
     transition: all 0.6s ease-out;
     overflow: visible;
     animation: pulseGlow 2s infinite alternate;
+    will-change: box-shadow, transform;
+    transform: translateZ(0);
 }
 
 .highlight::before {
     content: '';
     position: absolute;
-    top: -5px;
-    left: -5px;
-    right: -5px;
-    bottom: -5px;
-    border-radius: 2px;
-    box-shadow: 0 0 20px 8px rgba(173, 216, 230, 0.15);
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    border-radius: 4px;
+    box-shadow: 0 0 25px 10px rgba(173, 216, 230, 0.25);
     z-index: -1;
     pointer-events: none;
     animation: expandGlow 2s infinite alternate;
@@ -132,23 +515,23 @@ body {
 @keyframes pulseGlow {
     0% {
         box-shadow: 
-            inset 0 0 15px 5px rgba(173, 216, 230, 0.15),
-            0 0 20px 8px rgba(137, 207, 240, 0.2);
+            inset 0 0 20px 8px rgba(173, 216, 230, 0.2),
+            0 0 30px 12px rgba(137, 207, 240, 0.3);
     }
     100% {
         box-shadow: 
-            inset 0 0 20px 8px rgba(173, 216, 230, 0.2),
-            0 0 25px 10px rgba(137, 207, 240, 0.25),
-            0 0 35px 15px rgba(100, 180, 255, 0.15);
+            inset 0 0 25px 10px rgba(173, 216, 230, 0.3),
+            0 0 35px 15px rgba(137, 207, 240, 0.35),
+            0 0 45px 20px rgba(100, 180, 255, 0.2);
     }
 }
 
 @keyframes expandGlow {
     0% {
-        box-shadow: 0 0 20px 8px rgba(173, 216, 230, 0.15);
+        box-shadow: 0 0 20px 8px rgba(173, 216, 230, 0.25);
     }
     100% {
-        box-shadow: 0 0 25px 12px rgba(173, 216, 230, 0.2);
+        box-shadow: 0 0 30px 15px rgba(173, 216, 230, 0.35);
     }
 }
 
@@ -195,19 +578,24 @@ body {
     bottom: -100%;
     left: 0;
     width: 100%;
-    z-index: 999;
+    z-index: 800; /* Higher than the overlay */
     pointer-events: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
+    transform: translateX(16%) translateZ(0); /* Add translateZ for hardware acceleration */
+    will-change: transform, bottom;
+    backface-visibility: hidden;
 }
 
 .upwards-image-wrapper {
     width: 80%;
     max-width: 800px;
     position: relative;
-    animation: orangeGlow 2s infinite alternate;
+    animation: blueGlow 2s infinite alternate;
+    will-change: filter;
+    transform: translateZ(0);
 }
 
 .upwards-container img {
@@ -216,12 +604,25 @@ body {
     display: block;
 }
 
-@keyframes orangeGlow {
+.offering-text {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 60px;
+    color: white;
+    text-align: center;
+    margin-bottom: 40px;
+    opacity: 0;
+    text-shadow: 0 0 20px rgba(79, 128, 255, 0.6);
+    will-change: opacity, transform;
+    transform: translateZ(0);
+}
+
+@keyframes blueGlow {
     0% {
-        filter: drop-shadow(0 0 15px rgba(255, 140, 0, 0.6));
+        filter: drop-shadow(0 0 20px rgba(79, 128, 255, 0.7));
     }
     100% {
-        filter: drop-shadow(0 0 25px rgba(255, 165, 0, 0.8)) drop-shadow(0 0 40px rgba(255, 69, 0, 0.4));
+        filter: drop-shadow(0 0 30px rgba(79, 128, 255, 0.9)) drop-shadow(0 0 50px rgba(0, 69, 255, 0.5));
     }
 }
 
@@ -232,4 +633,251 @@ body {
 .fade-out {
     opacity: 0;
     transition: opacity 0.7s;
+}
+
+/* Loading Animation Overlay */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 14, 18, 0.85);
+    z-index: 1000; /* High by default, will be increased for email animation */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.5s ease, background-color 0.5s ease, z-index 0s linear;
+    pointer-events: none;
+}
+
+.loading-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: white;
+    margin-bottom: 30px;
+    letter-spacing: 0.5px;
+}
+
+.loading-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 8px;
+    width: 120px;
+    height: 120px;
+}
+
+.grid-cell {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.grid-cell.active {
+    background: #4F80FF;
+    box-shadow: 0 0 15px rgba(79, 128, 255, 0.7);
+}
+
+/* Animation patterns for grid cells */
+@keyframes horizontalScan {
+    0%, 100% { transform: translateY(0); }
+    33% { transform: translateY(43px); }
+    66% { transform: translateY(86px); }
+}
+
+@keyframes verticalScan {
+    0%, 100% { transform: translateX(0); }
+    33% { transform: translateX(43px); }
+    66% { transform: translateX(86px); }
+}
+
+@keyframes diagonalScan {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(43px, 43px); }
+    50% { transform: translate(86px, 86px); }
+    75% { transform: translate(43px, 43px); }
+    100% { transform: translate(0, 0); }
+}
+
+@keyframes clockwiseScan {
+    0%, 100% { transform: translate(0, 0); }
+    12.5% { transform: translate(43px, 0); }
+    25% { transform: translate(86px, 0); }
+    37.5% { transform: translate(86px, 43px); }
+    50% { transform: translate(86px, 86px); }
+    62.5% { transform: translate(43px, 86px); }
+    75% { transform: translate(0, 86px); }
+    87.5% { transform: translate(0, 43px); }
+}
+
+/* Pulse animation for active cells */
+@keyframes pulsate {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.grid-cell.active {
+    animation: pulsate 0.8s ease-in-out infinite;
+}
+
+/* Selection Animation Styles */
+.grid-cell.active.selection-mode {
+    background: #4F80FF; /* Changed back to blue to match the first loading animation */
+    box-shadow: 0 0 15px rgba(79, 128, 255, 0.7);
+    animation: pulsateSelection 0.8s ease-in-out infinite;
+}
+
+@keyframes pulsateSelection {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.9; }
+}
+
+/* Modify loading text animation for selection phase */
+.loading-text.selection-phase {
+    animation: textGlow 2s infinite alternate;
+}
+
+@keyframes textGlow {
+    0% { text-shadow: 0 0 5px rgba(79, 128, 255, 0.5); }
+    100% { text-shadow: 0 0 20px rgba(79, 128, 255, 0.9); }
+}
+
+/* Memorandum Animation Styles */
+.grid-cell.active.memorandum-mode {
+    background: #4F80FF;
+    box-shadow: 0 0 15px rgba(79, 128, 255, 0.7);
+    animation: pulsateMemorandum 1s ease-in-out infinite;
+}
+
+@keyframes pulsateMemorandum {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.9; box-shadow: 0 0 20px rgba(79, 128, 255, 0.9); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.loading-text.memorandum-phase {
+    animation: textPulse 1.5s infinite alternate;
+}
+
+@keyframes textPulse {
+    0% { transform: scale(1); text-shadow: 0 0 5px rgba(79, 128, 255, 0.5); }
+    100% { transform: scale(1.05); text-shadow: 0 0 20px rgba(79, 128, 255, 0.9); }
+}
+
+/* Restart Demo Overlay Styles */
+.restart-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000; /* Higher than everything */
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.restart-overlay.visible {
+    opacity: 1;
+}
+
+.restart-button {
+    padding: 20px 40px;
+    font-size: 24px;
+    font-weight: 600;
+    background-color: white;
+    color: #0A0E12;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(79, 128, 255, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.restart-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 40px rgba(79, 128, 255, 0.7);
+}
+
+.restart-button:active {
+    transform: scale(0.98);
+}
+
+/* Property Cards Styling */
+.property-cards {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.property-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-left: 3px solid #4F80FF;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 5px;
+    color: #0A0E12;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.memorandum-link {
+    display: inline-block;
+    color: #4F80FF;
+    text-decoration: none;
+    margin-top: 5px;
+    font-size: 0.9em;
+    position: relative;
+    padding-left: 20px;
+}
+
+.memorandum-link:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234F80FF' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' /%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.memorandum-link:hover {
+    text-decoration: underline;
+}
+
+/* Email Animation Styles */
+.grid-cell.active.email-mode {
+    background: #4F80FF;
+    box-shadow: 0 0 20px rgba(79, 128, 255, 0.9);
+    animation: pulsateEmail 0.8s ease-in-out infinite;
+}
+
+@keyframes pulsateEmail {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.9; box-shadow: 0 0 30px rgba(79, 128, 255, 1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.loading-text.email-phase {
+    animation: emailPulse 1.5s infinite alternate;
+    color: #FFFFFF;
+    font-size: 22px;
+    text-shadow: 0 0 10px rgba(79, 128, 255, 0.8);
+}
+
+@keyframes emailPulse {
+    0% { transform: scale(1); text-shadow: 0 0 5px rgba(79, 128, 255, 0.5); }
+    100% { transform: scale(1.05); text-shadow: 0 0 20px rgba(79, 128, 255, 0.9); }
 }
