@@ -1,0 +1,971 @@
+.container {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --item-width: 280px; /* Increased from 150px */
+  --item-height: 280px; /* Increased from 150px */
+  --total-items: 8; /* Number of items */
+  --spacing: 50px; /* Increased spacing between items */
+  --column-padding: 80px; /* Explicit equal gap between columns */
+  --blue-primary: #1e3a8a;
+  --blue-secondary: #3b82f6;
+  --blue-light: #dbeafe;
+  --blue-dark: #1e40af;
+  --text-light: #f5f5f5;
+  --text-dark: #0a0e12;
+}
+
+.pageContainer {
+  background: #0a0e12;
+  overflow: hidden;
+  font-family: inherit;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+}
+
+/* Chat Interface Styles - Email Response Look with dark theme */
+.chatContainer {
+  width: 90%;
+  max-width: 700px;
+  height: 90vh;
+  max-height: 700px;
+  background: #0f1419;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 2000; /* Higher than everything else */
+  transition: all 0.3s ease;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+/* For when the chat is minimized to the left - only adjust width-related properties */
+.minimized {
+  font-size: 95%;
+}
+
+.minimized .message {
+  max-width: 90%; /* Allow messages to use more space in the narrower container */
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: #141820;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.backButton,
+.menuButton {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.companyInfo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.companyLogo {
+  width: 40px;
+  height: 40px;
+  background: #1e3a8a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 20px;
+  border: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+.avatarLabel {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #3b82f6;
+  color: white;
+  font-size: 8px;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-weight: 600;
+  z-index: 2;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.companyDetails {
+  margin-left: 12px;
+}
+
+.companyName {
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.companyStatus {
+  color: #a0a9ba;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.chatMessages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: linear-gradient(to bottom, #0f1419, #111821);
+}
+
+.messageGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: messageAppear 0.5s forwards;
+  transition: opacity 0.3s ease;
+}
+
+/* For messages that we manually show/hide */
+.messageGroupWithId {
+  animation: none;
+  transform: translateY(0);
+}
+
+/* Message appear animation */
+@keyframes messageAppear {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Typing indicator animation */
+.typingIndicator {
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  height: 30px;
+  margin-right: auto;
+}
+
+.typingIndicator span {
+  height: 8px;
+  width: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  display: inline-block;
+  border-radius: 50%;
+  margin: 0 2px;
+  animation: typingBounce 1.2s infinite;
+}
+
+.typingIndicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typingIndicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}
+
+/* Reverse for AI messages (ZAPCRE AI) */
+.aiGroup {
+  flex-direction: row-reverse;
+}
+
+.messageAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.user {
+  background-color: #1e3a8a;
+  color: white;
+}
+
+.ai {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.message {
+  max-width: 75%;
+  padding: 16px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.userMessage {
+  background-color: #1e293b;
+  color: white;
+  border-left: 3px solid #3b82f6;
+}
+
+.aiMessage {
+  background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+  color: white;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.messageText {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.messageInfo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.messageTime {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0;
+  text-align: right;
+}
+
+.messageStatus {
+  display: flex;
+  align-items: center;
+}
+
+.notification {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.chatInput {
+  padding: 16px;
+  background: #141820;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  gap: 12px;
+}
+
+.chatInput input {
+  flex: 1;
+  padding: 12px 16px;
+  background: #1a1f28;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+}
+
+.chatInput input::placeholder {
+  color: #6c7a93;
+}
+
+.sendButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.sendButton svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: white;
+}
+
+/* Slot Machine Styles - Dark Theme */
+.slotMachineContainer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 66%;
+  height: 100%;
+  transition: opacity 1s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0a0e12, #141820);
+  overflow: hidden;
+}
+
+.columnsContainer {
+  display: grid;
+  grid-template-columns: repeat(3, var(--item-width));
+  justify-content: center;
+  column-gap: 25px; /* Reduced to 25px for very close spacing */
+  width: 100%;
+  height: 100vh;
+  padding: 0;
+  overflow: visible;
+  will-change: transform;
+  transform: translateZ(0);
+  position: relative;
+}
+
+/* Add subtle glow to slot machine container */
+.slotMachineContainer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrapper {
+  width: var(--item-width);
+  height: 100vh;
+  position: relative;
+  overflow: visible;
+  will-change: transform;
+  padding: 0;
+  margin: 0;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.marquee {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  overflow: visible;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.item {
+  width: var(--item-width);
+  height: var(--item-height);
+  border-radius: 1px;
+  margin-bottom: var(--spacing);
+  flex-shrink: 0;
+  background-color: #fff;
+  overflow: visible;
+  position: relative;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Selected clone styles for animation */
+.selectedClone {
+  position: fixed;
+  z-index: 1000;
+  border-radius: 1px;
+  background-color: #fff;
+  overflow: visible;
+  will-change: transform, opacity, box-shadow, top;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+
+.highlightedClone {
+  box-shadow: 0 0 25px 12px rgba(59, 130, 246, 0.4), 0 0 40px 16px rgba(30, 64, 175, 0.25) !important;
+  z-index: 1010;
+  animation: pulseGlowEnhanced 1.5s infinite alternate;
+}
+
+@keyframes pulseGlowEnhanced {
+  0% {
+    box-shadow: 0 0 25px 12px rgba(59, 130, 246, 0.4), 0 0 40px 16px rgba(30, 64, 175, 0.25);
+  }
+  100% {
+    box-shadow: 0 0 35px 15px rgba(59, 130, 246, 0.5), 0 0 50px 20px rgba(30, 64, 175, 0.35);
+  }
+}
+
+.selectedClone img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 1px;
+  backface-visibility: hidden;
+}
+
+.highlighted {
+  position: absolute; /* Allow absolute positioning during animation */
+  z-index: 100;
+}
+
+.item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 1px;
+  backface-visibility: hidden;
+}
+
+.marqueeHeading {
+  text-align: center;
+  font-size: 2rem;
+  color: #ffffff;
+  margin-bottom: 2rem;
+  font-family: inherit;
+  background: transparent;
+  position: absolute;
+  width: 100%;
+  z-index: 1;
+}
+
+.marqueeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+}
+
+.highlight {
+  position: relative;
+  outline: none;
+  border: none;
+  /* Blue gradient glow - enhanced */
+  background-color: rgba(59, 130, 246, 0.05);
+  box-shadow: inset 0 0 20px 8px rgba(59, 130, 246, 0.2), 0 0 30px 12px rgba(59, 130, 246, 0.3), 0 0 40px 16px
+    rgba(30, 64, 175, 0.15);
+  z-index: 10;
+  transition: all 0.6s ease-out;
+  overflow: visible;
+  animation: pulseGlow 2s infinite alternate;
+  will-change: box-shadow, transform;
+  transform: translateZ(0);
+}
+
+.highlight::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 4px;
+  box-shadow: 0 0 25px 10px rgba(59, 130, 246, 0.25);
+  z-index: -1;
+  pointer-events: none;
+  animation: expandGlow 2s infinite alternate;
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: inset 0 0 20px 8px rgba(59, 130, 246, 0.2), 0 0 30px 12px rgba(59, 130, 246, 0.3);
+  }
+  100% {
+    box-shadow: inset 0 0 25px 10px rgba(59, 130, 246, 0.3), 0 0 35px 15px rgba(59, 130, 246, 0.35), 0 0 45px 20px
+      rgba(30, 64, 175, 0.2);
+  }
+}
+
+@keyframes expandGlow {
+  0% {
+    box-shadow: 0 0 20px 8px rgba(59, 130, 246, 0.25);
+  }
+  100% {
+    box-shadow: 0 0 30px 15px rgba(59, 130, 246, 0.35);
+  }
+}
+
+.rise {
+  transform: translateY(-40px) scale(1.05);
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.moveToCenter {
+  transform: translateX(var(--center-x)) scale(1.05);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.combine {
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.centerItem {
+  z-index: 20;
+}
+
+.centerItem.combined {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Combined container for the final animation */
+.combinedContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--item-width);
+  height: var(--item-height);
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+
+/* Upwards image container */
+.upwardsContainer {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  width: 100%;
+  z-index: 800; /* Higher than the overlay */
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  transform: translateX(16%) translateZ(0); /* Add translateZ for hardware acceleration */
+  will-change: transform, bottom;
+  backface-visibility: hidden;
+}
+
+.upwardsImageWrapper {
+  width: 80%;
+  max-width: 800px;
+  position: relative;
+  animation: blueGlow 2s infinite alternate;
+  will-change: filter;
+  transform: translateZ(0);
+}
+
+.upwardsContainer img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.offeringText {
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 60px;
+  color: white;
+  text-align: center;
+  margin-bottom: 40px;
+  opacity: 0;
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+  will-change: opacity, transform;
+  transform: translateZ(0);
+}
+
+@keyframes blueGlow {
+  0% {
+    filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.7));
+  }
+  100% {
+    filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.9)) drop-shadow(0 0 50px rgba(30, 64, 175, 0.5));
+  }
+}
+
+.exitDown {
+  opacity: 0;
+}
+
+.fadeOut {
+  opacity: 0;
+  transition: opacity 0.7s;
+}
+
+/* Loading Animation Overlay */
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 14, 18, 0.85);
+  z-index: 1000; /* High by default, will be increased for email animation */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.5s ease, background-color 0.5s ease, z-index 0s linear;
+  pointer-events: none;
+}
+
+.loadingText {
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 500;
+  color: white;
+  margin-bottom: 30px;
+  letter-spacing: 0.5px;
+}
+
+.loadingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px;
+  width: 120px;
+  height: 120px;
+}
+
+.gridCell {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.active {
+  background: #3b82f6;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
+}
+
+/* Animation patterns for grid cells */
+@keyframes horizontalScan {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  33% {
+    transform: translateY(43px);
+  }
+  66% {
+    transform: translateY(86px);
+  }
+}
+
+@keyframes verticalScan {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  33% {
+    transform: translateX(43px);
+  }
+  66% {
+    transform: translateX(86px);
+  }
+}
+
+@keyframes diagonalScan {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(43px, 43px);
+  }
+  50% {
+    transform: translate(86px, 86px);
+  }
+  75% {
+    transform: translate(43px, 43px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes clockwiseScan {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  12.5% {
+    transform: translate(43px, 0);
+  }
+  25% {
+    transform: translate(86px, 0);
+  }
+  37.5% {
+    transform: translate(86px, 43px);
+  }
+  50% {
+    transform: translate(86px, 86px);
+  }
+  62.5% {
+    transform: translate(43px, 86px);
+  }
+  75% {
+    transform: translate(0, 86px);
+  }
+  87.5% {
+    transform: translate(0, 43px);
+  }
+}
+
+/* Pulse animation for active cells */
+@keyframes pulsate {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.active {
+  animation: pulsate 0.8s ease-in-out infinite;
+}
+
+/* Selection Animation Styles */
+.selectionMode {
+  background: #3b82f6; /* Changed to blue to match the theme */
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
+  animation: pulsateSelection 0.8s ease-in-out infinite;
+}
+
+@keyframes pulsateSelection {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.9;
+  }
+}
+
+/* Modify loading text animation for selection phase */
+.selectionPhase {
+  animation: textGlow 2s infinite alternate;
+}
+
+@keyframes textGlow {
+  0% {
+    text-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  100% {
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.9);
+  }
+}
+
+/* Memorandum Animation Styles */
+.memorandumMode {
+  background: #3b82f6;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
+  animation: pulsateMemorandum 1s ease-in-out infinite;
+}
+
+@keyframes pulsateMemorandum {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.9;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.memorandumPhase {
+  animation: textPulse 1.5s infinite alternate;
+}
+
+@keyframes textPulse {
+  0% {
+    transform: scale(1);
+    text-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  100% {
+    transform: scale(1.05);
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.9);
+  }
+}
+
+/* Restart Demo Overlay Styles */
+.restartOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000; /* Higher than everything */
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.visible {
+  opacity: 1;
+}
+
+.restartButton {
+  padding: 20px 40px;
+  font-size: 24px;
+  font-weight: 600;
+  background-color: white;
+  color: #0a0e12;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.restartButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 40px rgba(59, 130, 246, 0.7);
+}
+
+.restartButton:active {
+  transform: scale(0.98);
+}
+
+/* Property Cards Styling */
+.propertyCards {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.propertyCard {
+  background: rgba(255, 255, 255, 0.95);
+  border-left: 3px solid #3b82f6;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 5px;
+  color: #0a0e12;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.memorandumLink {
+  display: inline-block;
+  color: #3b82f6;
+  text-decoration: none;
+  margin-top: 5px;
+  font-size: 0.9em;
+  position: relative;
+  padding-left: 20px;
+}
+
+.memorandumLink:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%233b82f6' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' /%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.memorandumLink:hover {
+  text-decoration: underline;
+}
+
+/* Email Animation Styles */
+.emailMode {
+  background: #3b82f6;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.9);
+  animation: pulsateEmail 0.8s ease-in-out infinite;
+}
+
+@keyframes pulsateEmail {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.9;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.emailPhase {
+  animation: emailPulse 1.5s infinite alternate;
+  color: #ffffff;
+  font-size: 22px;
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+}
+
+@keyframes emailPulse {
+  0% {
+    transform: scale(1);
+    text-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  100% {
+    transform: scale(1.05);
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.9);
+  }
+}
