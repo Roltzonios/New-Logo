@@ -1,0 +1,85 @@
+.property-card-7eleven {
+  border-left: 4px solid #ffcc00;
+}
+
+.property-card-walgreens {
+  border-left: 4px solid #e31837;
+}
+
+.property-card-cvs {
+  border-left: 4px solid #cc0000;
+}
+
+/* Add primary color for workflow steps */
+:root {
+  --primary: #ff7a00;
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+/* Step marker styling */
+.step-marker {
+  position: relative;
+  z-index: 10;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.step-marker.active {
+  animation: pulse-marker 2s infinite ease-in-out;
+}
+
+@keyframes pulse-marker {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(3, 112, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(3, 112, 255, 0.9), 0 0 30px rgba(6, 182, 255, 0.5);
+  }
+}
+
+.step-text {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dot grid background */
+.dot-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+  background-position: 0 0;
+  z-index: 0;
+}
+
+/* Property card with futuristic glow */
+.property-card-futuristic {
+  background: linear-gradient(135deg, rgba(9, 16, 31, 0.95) 0%, rgba(12, 24, 45, 0.95) 100%);
+  border: 1px solid rgba(3, 112, 255, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.property-card-futuristic:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 15px rgba(3, 112, 255, 0.3);
+  border-color: rgba(3, 112, 255, 0.6);
+}

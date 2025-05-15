@@ -1,63 +1,48 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import { gsap } from "gsap"
 import styles from "./styles.module.css"
-import gsap from "gsap"
+import { Inter } from "next/font/google"
 
-export default function ChatAnimation() {
-  const chatMessagesRef = useRef<HTMLDivElement>(null)
+// Initialize the Inter font
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+})
+
+export default function ChatAnimationPage() {
+  // Refs for DOM elements
   const chatContainerRef = useRef<HTMLDivElement>(null)
+  const chatMessagesRef = useRef<HTMLDivElement>(null)
   const slotMachineContainerRef = useRef<HTMLDivElement>(null)
   const loadingOverlayRef = useRef<HTMLDivElement>(null)
+  const marquee1Ref = useRef<HTMLDivElement>(null)
+  const marquee2Ref = useRef<HTMLDivElement>(null)
+  const marquee3Ref = useRef<HTMLDivElement>(null)
+
+  // Animation controller refs
+  const gridAnimatorRef = useRef<GridAnimator | null>(null)
+  const selectionAnimatorRef = useRef<SelectionGridAnimator | null>(null)
+  const memorandumAnimatorRef = useRef<MemorandumGridAnimator | null>(null)
+  const emailAnimatorRef = useRef<EmailGridAnimator | null>(null)
 
   useEffect(() => {
-    // Initialize the animation when the component mounts
-    const script = document.createElement("script")
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"
-    script.async = true
-    script.onload = () => {
-      // Start the animation once GSAP is loaded
-      startChatAnimation()
-    }
-    document.body.appendChild(script)
+    // Start the chat animation when the component mounts
+    startChatAnimation()
 
+    // Cleanup function to remove any event listeners or timers
     return () => {
-      // Clean up
-      if (document.body.contains(script)) {
-        document.body.removeChild(script)
-      }
+      if (gridAnimatorRef.current) gridAnimatorRef.current.stop()
+      if (selectionAnimatorRef.current) selectionAnimatorRef.current.stop()
+      if (memorandumAnimatorRef.current) memorandumAnimatorRef.current.stop()
+      if (emailAnimatorRef.current) emailAnimatorRef.current.stop()
     }
   }, [])
 
-  // Function to show an element with fade-in
-  const showElement = (id: string) => {
-    const element = document.getElementById(id)
-    if (element) {
-      element.style.display = "flex"
-      // Force reflow
-      void element.offsetHeight
-      // Fade in
-      element.style.opacity = "1"
-      // Scroll to bottom
-      if (chatMessagesRef.current) {
-        chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight
-      }
-    }
-  }
-
-  // Function to hide an element with fade-out
-  const hideElement = (id: string) => {
-    const element = document.getElementById(id)
-    if (element) {
-      element.style.opacity = "0"
-      setTimeout(() => {
-        element.style.display = "none"
-      }, 300) // Match transition duration
-    }
-  }
-
-  // Start the chat animation sequence
-  const startChatAnimation = () => {
+  // Chat Animation
+  function startChatAnimation() {
     if (!chatMessagesRef.current) return
 
     // Add all message elements at the beginning but keep them hidden
@@ -77,7 +62,7 @@ export default function ChatAnimation() {
       <!-- AI typing indicator 1 -->
       <div class="${styles.messageGroup} ${styles.aiGroup}" id="typingIndicator1" style="opacity: 0; display: none;">
         <div class="${styles.messageAvatar} ${styles.ai}">Z
-          <div class="${styles.avatarLabel}">ZAPCRE AI</div>
+          <div class="${styles.avatarLabel}">Astroop AI</div>
         </div>
         <div class="${styles.message} ${styles.aiMessage}">
           <div class="${styles.typingIndicator}">
@@ -91,7 +76,7 @@ export default function ChatAnimation() {
       <!-- AI response -->
       <div class="${styles.messageGroup} ${styles.aiGroup}" id="aiResponse1" style="opacity: 0; display: none;">
         <div class="${styles.messageAvatar} ${styles.ai}">Z
-          <div class="${styles.avatarLabel}">ZAPCRE AI</div>
+          <div class="${styles.avatarLabel}">Astroop AI</div>
         </div>
         <div class="${styles.message} ${styles.aiMessage}">
           <div class="${styles.messageText}">
@@ -103,6 +88,31 @@ export default function ChatAnimation() {
     `
 
     chatMessagesRef.current.innerHTML = messagesHTML
+
+    // Function to show an element with fade-in
+    function showElement(id: string) {
+      const element = document.getElementById(id)
+      if (!element || !chatMessagesRef.current) return
+
+      element.style.display = "flex"
+      // Force reflow
+      void element.offsetHeight
+      // Fade in
+      element.style.opacity = "1"
+      // Scroll to bottom
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight
+    }
+
+    // Function to hide an element with fade-out
+    function hideElement(id: string) {
+      const element = document.getElementById(id)
+      if (!element) return
+
+      element.style.opacity = "0"
+      setTimeout(() => {
+        element.style.display = "none"
+      }, 300) // Match transition duration
+    }
 
     // Show messages and typing indicators in sequence
     setTimeout(() => {
@@ -133,7 +143,6 @@ export default function ChatAnimation() {
                 chatContainerRef.current.style.willChange = "transform, width, left"
 
                 // Position chat container on the left side but fully visible
-                // @ts-ignore - gsap is loaded via CDN
                 gsap.to(chatContainerRef.current, {
                   left: "50%", // Keep centered horizontally
                   xPercent: -150, // Move left by 1.5x its width from center
@@ -151,10 +160,10 @@ export default function ChatAnimation() {
                     if (slotMachineContainerRef.current) {
                       slotMachineContainerRef.current.style.opacity = "1"
                       slotMachineContainerRef.current.style.pointerEvents = "auto"
-                    }
 
-                    // Start slot machine initialization (which shows the loading animation first)
-                    initSlotMachine()
+                      // Start slot machine initialization (which shows the loading animation first)
+                      initSlotMachine()
+                    }
                   },
                 })
               }
@@ -166,35 +175,36 @@ export default function ChatAnimation() {
   }
 
   // Preload images function to ensure smooth animation
-  const preloadSlotMachineImages = () => {
+  function preloadSlotMachineImages() {
     const images = [
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image5-YHpyLYDh6xJ7E3MK2CXiq4I0JcFMW3.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image3-Xpw6rsJoRphyeuMOg9mJu6WNcXunu1.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image1-yfnaQGuRx0a1zVO2tKoBk36NTQYGdb.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image4-RBcTMpROISFubsu6pBMkL4t4d8lfMj.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image2-P3ZPGGdvUq328DmCJ3Mnap0LEZmiI0.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Untitled%20design%20%2836%29-u39s78ekm6jjsgZoyDFgkbKKtKooXo.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Untitled%20design%20%2837%29-5cJTuK5XBR0MGlpwB2ggkzJH7f4H6i.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image7-Af0d3Dra9y9KVl3lVqGsFHbEGeHYzU.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/OpenAI%20Playground%202025-05-13%20at%2020.33.54-f7MRl8CQPHepzGxLOCwabfRfCvsRV7.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image6-AnewAPuzhmlsPdsLmv7ChJxJNcunLb.png",
+      "/images/slot/image1.png",
+      "/images/slot/image2.png",
+      "/images/slot/image3.png",
+      "/images/slot/image4.png",
+      "/images/slot/image5.png",
+      "/images/slot/image6.png",
+      "/images/slot/image7.png",
+      "/images/slot/image8.png",
+      "/images/slot/image9.png",
+      "/images/slot/image10.png",
+      "/images/slot/offering-memorandum.png",
     ]
 
     images.forEach((src) => {
       const img = new Image()
       img.src = src
-      img.crossOrigin = "anonymous"
     })
   }
 
   // Show and control the loading animation
-  const showLoadingAnimation = () => {
-    if (loadingOverlayRef.current) {
-      loadingOverlayRef.current.style.opacity = "1"
-    }
+  function showLoadingAnimation() {
+    if (!loadingOverlayRef.current) return null
+
+    loadingOverlayRef.current.style.opacity = "1"
 
     // Start the grid cell animation patterns
     const gridAnimator = new GridAnimator()
+    gridAnimatorRef.current = gridAnimator
     gridAnimator.start()
 
     // Return the animator so we can stop it later
@@ -210,6 +220,7 @@ export default function ChatAnimation() {
     patterns: ((step: number) => void)[] = []
 
     constructor() {
+      this.cells = []
       for (let row = 0; row < 3; row++) {
         for (let col = 0; col < 3; col++) {
           const cell = document.getElementById(`cell-${row}-${col}`)
@@ -239,7 +250,7 @@ export default function ChatAnimation() {
       this.clearCells()
       const row = Math.floor(step / 3) % 3
       for (let col = 0; col < 3; col++) {
-        this.cells[row * 3 + col].classList.add(styles.active)
+        this.cells[row * 3 + col]?.classList.add(styles.active)
       }
     }
 
@@ -248,7 +259,7 @@ export default function ChatAnimation() {
       this.clearCells()
       const col = Math.floor(step / 3) % 3
       for (let row = 0; row < 3; row++) {
-        this.cells[row * 3 + col].classList.add(styles.active)
+        this.cells[row * 3 + col]?.classList.add(styles.active)
       }
     }
 
@@ -258,12 +269,12 @@ export default function ChatAnimation() {
       if (step % 2 === 0) {
         // Main diagonal (top-left to bottom-right)
         for (let i = 0; i < 3; i++) {
-          this.cells[i * 3 + i].classList.add(styles.active)
+          this.cells[i * 3 + i]?.classList.add(styles.active)
         }
       } else {
         // Anti-diagonal (top-right to bottom-left)
         for (let i = 0; i < 3; i++) {
-          this.cells[i * 3 + (2 - i)].classList.add(styles.active)
+          this.cells[i * 3 + (2 - i)]?.classList.add(styles.active)
         }
       }
     }
@@ -277,7 +288,7 @@ export default function ChatAnimation() {
 
       const patternStep = Math.floor(step / 2) % 3
       for (let i = 0; i <= patternStep; i++) {
-        this.cells[sequence[i]].classList.add(styles.active)
+        this.cells[sequence[i]]?.classList.add(styles.active)
       }
     }
 
@@ -291,8 +302,8 @@ export default function ChatAnimation() {
         .sort((a, b) => a.sort - b.sort)
         .map(({ value }) => value)
 
-      for (let i = 0; i < Math.min(numCells, 9); i++) {
-        this.cells[shuffled[i]].classList.add(styles.active)
+      for (let i = 0; i < numCells; i++) {
+        this.cells[shuffled[i]]?.classList.add(styles.active)
       }
     }
 
@@ -306,10 +317,12 @@ export default function ChatAnimation() {
 
       if (patternStep === 0) {
         // Center only
-        this.cells[4].classList.add(styles.active)
+        this.cells[4]?.classList.add(styles.active)
       } else if (patternStep === 1) {
         // Center + edges
-        ;[1, 3, 4, 5, 7].forEach((idx) => this.cells[idx].classList.add(styles.active))
+        ;[1, 3, 4, 5, 7].forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       } else {
         // All cells
         this.cells.forEach((cell) => cell.classList.add(styles.active))
@@ -348,13 +361,461 @@ export default function ChatAnimation() {
     }
   }
 
+  // Update initSlotMachine to show loading animation
+  function initSlotMachine() {
+    // Start the loading animation
+    const gridAnimator = showLoadingAnimation()
+
+    // Images to use
+    const images = [
+      "/images/slot/image1.png",
+      "/images/slot/image2.png",
+      "/images/slot/image3.png",
+      "/images/slot/image4.png",
+      "/images/slot/image5.png",
+      "/images/slot/image6.png",
+      "/images/slot/image7.png",
+      "/images/slot/image8.png",
+      "/images/slot/image9.png",
+      "/images/slot/image10.png",
+    ]
+
+    // Shuffle helper
+    function shuffle(arr: string[]) {
+      const a = arr.slice()
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[a[i], a[j]] = [a[j], a[i]]
+      }
+      return a
+    }
+
+    // Fill each column with a different shuffled order
+    const marquees = [marquee1Ref.current, marquee2Ref.current, marquee3Ref.current]
+
+    if (!marquees[0] || !marquees[1] || !marquees[2]) return
+
+    const reelOrders = [shuffle(images), shuffle(images), shuffle(images)]
+    const reelOrders2 = [shuffle(images), shuffle(images), shuffle(images)]
+
+    marquees.forEach((marquee, i) => {
+      if (!marquee) return
+
+      marquee.innerHTML = ""
+      // First unique shuffle
+      reelOrders[i].forEach((src) => {
+        const div = document.createElement("div")
+        div.className = styles.item
+        const img = document.createElement("img")
+        img.src = src
+        img.alt = "Slot Image"
+        div.appendChild(img)
+        marquee.appendChild(div)
+      })
+      // Second unique shuffle (for seamless loop)
+      reelOrders2[i].forEach((src) => {
+        const div = document.createElement("div")
+        div.className = styles.item
+        const img = document.createElement("img")
+        img.src = src
+        img.alt = "Slot Image"
+        div.appendChild(img)
+        marquee.appendChild(div)
+      })
+    })
+
+    // Start the slot machine animation with a slight delay
+    setTimeout(() => {
+      // Hide loading animation
+      if (loadingOverlayRef.current) {
+        loadingOverlayRef.current.style.opacity = "0"
+      }
+      // Stop the grid animator
+      if (gridAnimator) {
+        gridAnimator.stop()
+      }
+
+      // Start spinning
+      spinOnce()
+    }, 3000) // Show loading for 3 seconds before starting spin
+  }
+
+  // Slot machine animation (one-time, automatic)
+  const ITEM_HEIGHT = 280
+  const SPACING = 50 // Increased from 30px to 50px for more space
+  const SPIN_DISTANCE = (ITEM_HEIGHT + SPACING) * 10 // Using 10 as a base for the images array length
+
+  function spinOnce() {
+    const marquees = [marquee1Ref.current, marquee2Ref.current, marquee3Ref.current]
+
+    if (!marquees[0] || !marquees[1] || !marquees[2]) return
+
+    // Prepare for animation by forcing layout calculations first
+    marquees.forEach((marquee) => {
+      // Force layout calculation
+      void marquee.offsetHeight
+
+      // Apply GPU acceleration
+      marquee.style.willChange = "transform"
+      marquee.style.transform = "translateZ(0)"
+    })
+
+    // Sequential stopping for reels (left to right)
+    marquees.forEach((marquee, index) => {
+      // Add staggered delay for each column
+      setTimeout(() => {
+        // Initial fast spin with better transition curve
+        marquee.style.transition = "transform 1.5s cubic-bezier(0.19, 0.69, 0.22, 1)"
+
+        // Use requestAnimationFrame for better performance
+        requestAnimationFrame(() => {
+          marquee.style.transform = `translateY(-${SPIN_DISTANCE * 0.6}px)`
+
+          // Then slow down to final position
+          setTimeout(() => {
+            marquee.style.transition = "transform 2.5s cubic-bezier(0.33, 0.9, 0.33, 1)"
+
+            requestAnimationFrame(() => {
+              marquee.style.transform = `translateY(-${SPIN_DISTANCE}px)`
+            })
+          }, 1500)
+        })
+      }, index * 600) // Each column starts with a delay
+    })
+
+    // Allow enough time for all animation phases to complete
+    setTimeout(() => {
+      // Reset will-change property after animation
+      marquees.forEach((marquee) => {
+        marquee.style.willChange = "auto"
+      })
+
+      // Show the selection loading animation
+      const selectionAnimator = showSelectionLoadingAnimation()
+
+      // After showing loading animation for a while, start highlight process
+      setTimeout(() => {
+        // Hide loading animation
+        if (loadingOverlayRef.current) {
+          loadingOverlayRef.current.style.opacity = "0"
+        }
+
+        // Clean up selection styles
+        const loadingText = document.querySelector(`.${styles.loadingText}`)
+        if (loadingText) {
+          loadingText.classList.remove(styles.selectionPhase)
+        }
+
+        document.querySelectorAll(`.${styles.gridCell}`).forEach((cell) => {
+          cell.classList.remove(styles.selectionMode)
+        })
+
+        // Stop the grid animator
+        if (selectionAnimator) {
+          selectionAnimator.stop()
+        }
+
+        // Start highlight animation
+        highlightAndAnimate()
+      }, 2500) // Show selection loading for 2.5 seconds
+    }, 5000)
+  }
+
+  function highlightAndAnimate() {
+    const marquees = [marquee1Ref.current, marquee2Ref.current, marquee3Ref.current]
+
+    if (!marquees[0] || !marquees[1] || !marquees[2]) return
+
+    // Find the 3 images closest to center
+    const selected: HTMLElement[] = []
+    marquees.forEach((marquee, i) => {
+      const items = marquee.querySelectorAll(`.${styles.item}`)
+      const wrapper = marquee.parentElement
+      if (!wrapper) return
+
+      const wrapperRect = wrapper.getBoundingClientRect()
+      const wrapperCenterY = wrapperRect.top + wrapperRect.height / 2
+      let minDist = Number.POSITIVE_INFINITY
+      let closest: HTMLElement | null = null
+
+      items.forEach((item) => {
+        const rect = item.getBoundingClientRect()
+        const itemCenterY = rect.top + rect.height / 2
+        const dist = Math.abs(itemCenterY - wrapperCenterY)
+        if (dist < minDist) {
+          minDist = dist
+          closest = item as HTMLElement
+        }
+      })
+
+      if (closest) {
+        selected.push(closest)
+      }
+    })
+
+    // Create clones of selected elements that we'll animate
+    const clones = selected.map((item, index) => {
+      const clone = item.cloneNode(true) as HTMLElement
+      clone.classList.add(styles.selectedClone)
+      clone.classList.add(`${styles.selectedClone}-${index}`)
+
+      // Get current position
+      const rect = item.getBoundingClientRect()
+
+      // Style the clone for animation
+      clone.style.position = "fixed"
+      clone.style.top = rect.top + "px"
+      clone.style.left = rect.left + "px"
+      clone.style.width = rect.width + "px"
+      clone.style.height = rect.height + "px"
+      clone.style.zIndex = "1000"
+      clone.style.margin = "0"
+      clone.style.transition = "none"
+
+      // Add to document
+      document.body.appendChild(clone)
+
+      return clone
+    })
+
+    // Store the center clone and its position for other clones to move to
+    const centerClone = clones[1]
+    const centerPosition = centerClone?.getBoundingClientRect()
+
+    // Hide all original marquee content
+    marquees.forEach((marquee) => {
+      // Fade out with transition
+      marquee.style.transition = "opacity 0.5s ease"
+      marquee.style.opacity = "0"
+    })
+
+    // Highlight clones one by one
+    function highlightClones(idx: number) {
+      if (idx >= clones.length) {
+        // After highlighting all clones, begin the move to center sequence
+        setTimeout(moveToCenter, 600)
+        return
+      }
+
+      // Apply highlight with CSS transitions
+      const clone = clones[idx]
+      clone.style.transition = "box-shadow 0.5s ease, transform 0.5s ease"
+      clone.style.boxShadow = "0 0 20px 8px rgba(173, 216, 230, 0.5)"
+      clone.style.transform = "scale(1.05)"
+
+      // Add a glow class for extra visual effect
+      clone.classList.add(styles.highlightedClone)
+
+      // Move to next clone after delay
+      setTimeout(() => highlightClones(idx + 1), 800)
+    }
+
+    // Start highlighting process
+    setTimeout(() => highlightClones(0), 500)
+
+    // Move side clones to center
+    function moveToCenter() {
+      // First move up slightly
+      clones.forEach((clone) => {
+        clone.style.transition = "transform 0.8s cubic-bezier(0.23, 1, 0.32, 1)"
+        clone.style.transform = "scale(1.05) translateY(-40px)"
+      })
+
+      // After moving up, begin the converge to center animation
+      setTimeout(() => {
+        if (!centerPosition) return
+
+        // Get the left and right clones
+        const leftClone = clones[0]
+        const rightClone = clones[2]
+
+        // Prepare for movement to center
+        leftClone.style.transition = "left 0.8s cubic-bezier(0.16, 1, 0.3, 1), top 0.8s cubic-bezier(0.16, 1, 0.3, 1)"
+        rightClone.style.transition = "left 0.8s cubic-bezier(0.16, 1, 0.3, 1), top 0.8s cubic-bezier(0.16, 1, 0.3, 1)"
+
+        // Move to center position
+        leftClone.style.left = centerPosition.left + "px"
+        rightClone.style.left = centerPosition.left + "px"
+
+        // After converging to center, drop them all
+        setTimeout(dropClones, 1000)
+      }, 800)
+    }
+
+    // Drop clones down off-screen
+    function dropClones() {
+      clones.forEach((clone) => {
+        // Change transition for drop animation
+        clone.style.transition = "top 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s ease"
+
+        // Move down below screen
+        clone.style.top = window.innerHeight + 100 + "px"
+
+        // Fade out as they drop
+        setTimeout(() => {
+          clone.style.opacity = "0"
+        }, 300)
+      })
+
+      // After clones drop, show the memorandum loading animation
+      setTimeout(() => {
+        // Remove clones from DOM when animations complete
+        clones.forEach((clone) => clone.remove())
+
+        // Show memorandum loading animation
+        const memorandumAnimator = showMemorandumLoadingAnimation()
+
+        // After showing memorandum loading animation, show offering memorandum
+        setTimeout(() => {
+          // Hide loading animation
+          if (loadingOverlayRef.current) {
+            loadingOverlayRef.current.style.opacity = "0"
+          }
+
+          // Clean up memorandum styles
+          const loadingText = document.querySelector(`.${styles.loadingText}`)
+          if (loadingText) {
+            loadingText.classList.remove(styles.memorandumPhase)
+          }
+
+          document.querySelectorAll(`.${styles.gridCell}`).forEach((cell) => {
+            cell.classList.remove(styles.memorandumMode)
+          })
+
+          // Stop the memorandum animator
+          if (memorandumAnimator) {
+            memorandumAnimator.stop()
+          }
+
+          // Show offering memorandum
+          showOfferingMemorandum()
+        }, 2500) // Show memorandum loading for 2.5 seconds
+      }, 1500)
+    }
+
+    // Function to show offering memorandum
+    function showOfferingMemorandum() {
+      // Create container
+      const container = document.createElement("div")
+      container.className = styles.upwardsContainer
+      container.innerHTML = `
+        <div class="${styles.offeringText}">OFFERING MEMORANDUMS</div>
+        <div class="${styles.upwardsImageWrapper}">
+          <img src="/images/slot/offering-memorandum.png" alt="Offering Memorandums">
+        </div>
+      `
+
+      // Set will-change for better performance
+      container.style.willChange = "transform, bottom"
+
+      // Set initial position
+      container.style.bottom = "-100%"
+      container.style.transition = "bottom 1.5s cubic-bezier(0.16, 1, 0.3, 1)"
+      document.body.appendChild(container)
+
+      // Force reflow before animation
+      void container.offsetHeight
+
+      // Move up with requestAnimationFrame for better performance
+      requestAnimationFrame(() => {
+        container.style.bottom = "10%" // Changed from -10% to 10% to fix positioning
+
+        // Fade in text separately with requestAnimationFrame
+        const text = container.querySelector(`.${styles.offeringText}`)
+        if (text) {
+          text.style.willChange = "opacity, transform"
+          text.style.transform = "translateY(20px)"
+          text.style.transition = "opacity 0.7s ease, transform 0.7s ease"
+
+          setTimeout(() => {
+            requestAnimationFrame(() => {
+              text.style.opacity = "1"
+              text.style.transform = "translateY(0)"
+
+              // WAIT FOR FULL OFFERING MEMORANDUM DOCUMENT TO BE VISIBLE FIRST
+              // Let it be visible for a while
+              setTimeout(() => {
+                // NOW show the email generation animation
+                const emailAnimator = showEmailGenerationAnimation()
+
+                // After email generation animation, fade things out
+                setTimeout(() => {
+                  // Hide loading animation
+                  if (loadingOverlayRef.current) {
+                    loadingOverlayRef.current.style.opacity = "0"
+                  }
+
+                  // Clean up email styles
+                  const loadingText = document.querySelector(`.${styles.loadingText}`)
+                  if (loadingText) {
+                    loadingText.classList.remove(styles.emailPhase)
+                  }
+
+                  document.querySelectorAll(`.${styles.gridCell}`).forEach((cell) => {
+                    cell.classList.remove(styles.emailMode)
+                  })
+
+                  // Stop the email animator
+                  if (emailAnimator) {
+                    emailAnimator.stop()
+                  }
+
+                  // Fade out the offering memorandum and text
+                  container.style.transition = "opacity 1s ease"
+                  container.style.opacity = "0"
+                  text.style.transition = "opacity 1s ease"
+                  text.style.opacity = "0"
+
+                  // After fade out completes, restore chat
+                  setTimeout(() => {
+                    container.style.willChange = "auto"
+                    text.style.willChange = "auto"
+
+                    // Restore chat interface
+                    restoreChatInterface()
+                  }, 1000)
+                }, 3000) // Email generation animation duration
+              }, 3000) // Time to display offering memorandum before starting email animation
+            })
+          }, 600)
+        }
+      })
+    }
+  }
+
+  // Add a second loading animation for the selection process
+  function showSelectionLoadingAnimation() {
+    if (!loadingOverlayRef.current) return null
+
+    // Change the text for this phase and add selection phase class
+    const loadingText = document.querySelector(`.${styles.loadingText}`)
+    if (loadingText) {
+      loadingText.textContent = "Choosing the best properties..."
+      loadingText.classList.add(styles.selectionPhase)
+    }
+
+    loadingOverlayRef.current.style.opacity = "1"
+
+    // Add selection mode class to all grid cells to use different style
+    const gridCells = document.querySelectorAll(`.${styles.gridCell}`)
+    gridCells.forEach((cell) => cell.classList.add(styles.selectionMode))
+
+    // Start the grid cell animation with selection patterns
+    const gridAnimator = new SelectionGridAnimator()
+    selectionAnimatorRef.current = gridAnimator
+    gridAnimator.start()
+
+    // Return the animator so we can stop it later
+    return gridAnimator
+  }
+
   // Selection Grid Animation Controller with different patterns
   class SelectionGridAnimator extends GridAnimator {
     constructor() {
       super() // Initialize base properties
       this.currentPattern = 0
       this.patterns = [
-        this.zigzagPattern.bind(this),
+        this.checkmarkPattern.bind(this),
         this.xPattern.bind(this),
         this.scanningPattern.bind(this),
         this.cornerToCenterPattern.bind(this),
@@ -363,14 +824,14 @@ export default function ChatAnimation() {
       ]
     }
 
-    // Zigzag pattern (resembles a Z)
-    zigzagPattern(step: number) {
+    // Checkmark pattern (resembles a check)
+    checkmarkPattern(step: number) {
       this.clearCells()
-      const zigzagCells = [0, 1, 2, 4, 6, 7, 8] // Forms a Z shape
-      const patternStep = step % zigzagCells.length
+      const checkmarkCells = [6, 7, 4, 2, 0] // Forms a checkmark shape
+      const patternStep = step % checkmarkCells.length
 
       for (let i = 0; i <= patternStep; i++) {
-        this.cells[zigzagCells[i]].classList.add(styles.active)
+        this.cells[checkmarkCells[i]]?.classList.add(styles.active)
       }
     }
 
@@ -382,12 +843,12 @@ export default function ChatAnimation() {
       if (patternStep === 0) {
         // Main diagonal
         for (let i = 0; i < 3; i++) {
-          this.cells[i * 3 + i].classList.add(styles.active)
+          this.cells[i * 3 + i]?.classList.add(styles.active)
         }
       } else {
         // Anti-diagonal
         for (let i = 0; i < 3; i++) {
-          this.cells[i * 3 + (2 - i)].classList.add(styles.active)
+          this.cells[i * 3 + (2 - i)]?.classList.add(styles.active)
         }
       }
     }
@@ -401,13 +862,13 @@ export default function ChatAnimation() {
       if (currentStep < 3) {
         // Highlight a row
         for (let col = 0; col < 3; col++) {
-          this.cells[currentStep * 3 + col].classList.add(styles.active)
+          this.cells[currentStep * 3 + col]?.classList.add(styles.active)
         }
       } else {
         // Highlight a column
         const col = currentStep - 3
         for (let row = 0; row < 3; row++) {
-          this.cells[row * 3 + col].classList.add(styles.active)
+          this.cells[row * 3 + col]?.classList.add(styles.active)
         }
       }
     }
@@ -419,13 +880,17 @@ export default function ChatAnimation() {
 
       if (patternStep === 0) {
         // Corners only
-        ;[0, 2, 6, 8].forEach((idx) => this.cells[idx].classList.add(styles.active))
+        ;[0, 2, 6, 8].forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       } else if (patternStep === 1) {
         // Edges
-        ;[1, 3, 5, 7].forEach((idx) => this.cells[idx].classList.add(styles.active))
+        ;[1, 3, 5, 7].forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       } else {
         // Center
-        this.cells[4].classList.add(styles.active)
+        this.cells[4]?.classList.add(styles.active)
       }
     }
 
@@ -444,7 +909,9 @@ export default function ChatAnimation() {
       ]
 
       const groupIndex = step % groups.length
-      groups[groupIndex].forEach((idx) => this.cells[idx].classList.add(styles.active))
+      groups[groupIndex].forEach((idx) => {
+        this.cells[idx]?.classList.add(styles.active)
+      })
     }
 
     // Analyzing pattern (simulates detailed analysis)
@@ -454,9 +921,38 @@ export default function ChatAnimation() {
       const activeCells = step % 10 // 0-9, where 9 means all cells
 
       for (let i = 0; i < Math.min(activeCells, 9); i++) {
-        this.cells[sequence[i]].classList.add(styles.active)
+        this.cells[sequence[i]]?.classList.add(styles.active)
       }
     }
+  }
+
+  // Function to show memorandum loading animation
+  function showMemorandumLoadingAnimation() {
+    if (!loadingOverlayRef.current) return null
+
+    // Change the text for this phase and add memorandum phase class
+    const loadingText = document.querySelector(`.${styles.loadingText}`)
+    if (loadingText) {
+      loadingText.textContent = "Generating branded offering memorandums..."
+      loadingText.classList.add(styles.memorandumPhase)
+    }
+
+    loadingOverlayRef.current.style.opacity = "1"
+
+    // Add memorandum mode class to all grid cells to use different style
+    const gridCells = document.querySelectorAll(`.${styles.gridCell}`)
+    gridCells.forEach((cell) => {
+      cell.classList.remove(styles.selectionMode) // Remove any previous mode
+      cell.classList.add(styles.memorandumMode)
+    })
+
+    // Start the grid cell animation with memorandum patterns
+    const gridAnimator = new MemorandumGridAnimator()
+    memorandumAnimatorRef.current = gridAnimator
+    gridAnimator.start()
+
+    // Return the animator so we can stop it later
+    return gridAnimator
   }
 
   // Memorandum Grid Animation Controller with different patterns
@@ -469,8 +965,6 @@ export default function ChatAnimation() {
         this.wavesPattern.bind(this),
         this.documentPattern.bind(this),
         this.buildingPattern.bind(this),
-        this.checkerboardPattern.bind(this),
-        this.crosshairPattern.bind(this),
       ]
     }
 
@@ -481,10 +975,12 @@ export default function ChatAnimation() {
 
       if (patternStep === 0) {
         // Center only
-        this.cells[4].classList.add(styles.active)
+        this.cells[4]?.classList.add(styles.active)
       } else if (patternStep === 1) {
         // Center + middle edges
-        ;[1, 3, 4, 5, 7].forEach((idx) => this.cells[idx].classList.add(styles.active))
+        ;[1, 3, 4, 5, 7].forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       } else {
         // All cells
         this.cells.forEach((cell) => cell.classList.add(styles.active))
@@ -496,7 +992,7 @@ export default function ChatAnimation() {
       this.clearCells()
       const currentRow = step % 3
       for (let col = 0; col < 3; col++) {
-        this.cells[currentRow * 3 + col].classList.add(styles.active)
+        this.cells[currentRow * 3 + col]?.classList.add(styles.active)
       }
     }
 
@@ -507,19 +1003,29 @@ export default function ChatAnimation() {
 
       if (patternStep === 0) {
         // Top row (header)
-        ;[0, 1, 2].forEach((idx) => this.cells[idx].classList.add(styles.active))
+        ;[0, 1, 2].forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       } else if (patternStep === 1) {
         // Middle row (content line 1)
-        ;[3, 4, 5].forEach((idx) => this.cells[idx].classList.add(styles.active))
+        ;[3, 4, 5].forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       } else if (patternStep === 2) {
         // Bottom row (content line 2)
-        ;[6, 7, 8].forEach((idx) => this.cells[idx].classList.add(styles.active))
+        ;[6, 7, 8].forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       } else if (patternStep === 3) {
         // Left column (margin)
-        ;[0, 3, 6].forEach((idx) => this.cells[idx].classList.add(styles.active))
+        ;[0, 3, 6].forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       } else {
         // Right column (margin)
-        ;[2, 5, 8].forEach((idx) => this.cells[idx].classList.add(styles.active))
+        ;[2, 5, 8].forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       }
     }
 
@@ -532,35 +1038,8 @@ export default function ChatAnimation() {
 
       for (let row = 0; row < currentRows; row++) {
         for (let col = 0; col < 3; col++) {
-          this.cells[row * 3 + col].classList.add(styles.active)
+          this.cells[row * 3 + col]?.classList.add(styles.active)
         }
-      }
-    }
-
-    // Checkerboard pattern
-    checkerboardPattern(step: number) {
-      this.clearCells()
-      const checkerboard = step % 2 === 0 ? [0, 2, 4, 6, 8] : [1, 3, 5, 7]
-
-      checkerboard.forEach((idx) => {
-        this.cells[idx].classList.add(styles.active)
-      })
-    }
-
-    // Crosshair pattern (center + vertical and horizontal lines)
-    crosshairPattern(step: number) {
-      this.clearCells()
-      const patternStep = step % 3
-
-      if (patternStep === 0) {
-        // Center only
-        this.cells[4].classList.add(styles.active)
-      } else if (patternStep === 1) {
-        // Center + vertical line
-        ;[1, 4, 7].forEach((idx) => this.cells[idx].classList.add(styles.active))
-      } else {
-        // Center + horizontal line
-        ;[3, 4, 5].forEach((idx) => this.cells[idx].classList.add(styles.active))
       }
     }
   }
@@ -575,8 +1054,6 @@ export default function ChatAnimation() {
         this.pulsePattern.bind(this),
         this.rotationPattern.bind(this),
         this.wavePattern.bind(this),
-        this.envelopePattern.bind(this),
-        this.sendingPattern.bind(this),
       ]
     }
 
@@ -588,13 +1065,19 @@ export default function ChatAnimation() {
 
       if (patternStep === 0) {
         // Vertical line (1, 7)
-        ;[1, 7].forEach((idx) => this.cells[idx].classList.add(styles.active))
+        ;[1, 7].forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       } else if (patternStep === 1) {
         // Horizontal line (3, 5)
-        ;[3, 5].forEach((idx) => this.cells[idx].classList.add(styles.active))
+        ;[3, 5].forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       } else {
         // All cross cells
-        crossCells.forEach((idx) => this.cells[idx].classList.add(styles.active))
+        crossCells.forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       }
     }
 
@@ -606,10 +1089,12 @@ export default function ChatAnimation() {
 
       if (step % 2 === 0) {
         // Activate all edge cells
-        edgeCells.forEach((idx) => this.cells[idx].classList.add(styles.active))
+        edgeCells.forEach((idx) => {
+          this.cells[idx]?.classList.add(styles.active)
+        })
       } else {
         // Activate only center
-        this.cells[4].classList.add(styles.active)
+        this.cells[4]?.classList.add(styles.active)
       }
     }
 
@@ -621,10 +1106,10 @@ export default function ChatAnimation() {
       const position = step % 4
 
       // Activate the current position
-      this.cells[edgeCells[position]].classList.add(styles.active)
+      this.cells[edgeCells[position]]?.classList.add(styles.active)
 
       // Always keep center active
-      this.cells[4].classList.add(styles.active)
+      this.cells[4]?.classList.add(styles.active)
     }
 
     // Wave pattern flowing through edges
@@ -635,293 +1120,26 @@ export default function ChatAnimation() {
       const indices = step % 4
 
       for (let i = 0; i <= indices; i++) {
-        this.cells[sequence[i]].classList.add(styles.active)
+        this.cells[sequence[i]]?.classList.add(styles.active)
       }
     }
-
-    // Envelope pattern (simulates an envelope)
-    envelopePattern(step: number) {
-      this.clearCells()
-      const patternStep = step % 4
-
-      if (patternStep === 0) {
-        // Top and bottom rows (envelope)
-        ;[0, 1, 2, 6, 7, 8].forEach((idx) => this.cells[idx].classList.add(styles.active))
-      } else if (patternStep === 1) {
-        // Diagonal lines (envelope fold)
-        ;[0, 4, 8].forEach((idx) => this.cells[idx].classList.add(styles.active))
-      } else if (patternStep === 2) {
-        // Other diagonal
-        ;[2, 4, 6].forEach((idx) => this.cells[idx].classList.add(styles.active))
-      } else {
-        // Full envelope
-        this.cells.forEach((cell) => cell.classList.add(styles.active))
-      }
-    }
-
-    // Sending pattern (simulates sending an email)
-    sendingPattern(step: number) {
-      this.clearCells()
-      const patternStep = step % 5
-
-      if (patternStep === 0) {
-        // Start at bottom left
-        this.cells[6].classList.add(styles.active)
-      } else if (patternStep === 1) {
-        // Move to center
-        this.cells[4].classList.add(styles.active)
-      } else if (patternStep === 2) {
-        // Move to top right
-        this.cells[2].classList.add(styles.active)
-      } else if (patternStep === 3) {
-        // Flash top right
-        ;[0, 1, 2, 5].forEach((idx) => this.cells[idx].classList.add(styles.active))
-      } else {
-        // Complete
-        ;[0, 1, 2].forEach((idx) => this.cells[idx].classList.add(styles.active))
-      }
-    }
-  }
-
-  // Update initSlotMachine to show loading animation
-  const initSlotMachine = () => {
-    // Start the loading animation
-    const gridAnimator = showLoadingAnimation()
-
-    // Images to use
-    const images = [
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image5-YHpyLYDh6xJ7E3MK2CXiq4I0JcFMW3.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image3-Xpw6rsJoRphyeuMOg9mJu6WNcXunu1.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image1-yfnaQGuRx0a1zVO2tKoBk36NTQYGdb.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image4-RBcTMpROISFubsu6pBMkL4t4d8lfMj.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image2-P3ZPGGdvUq328DmCJ3Mnap0LEZmiI0.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Untitled%20design%20%2836%29-u39s78ekm6jjsgZoyDFgkbKKtKooXo.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Untitled%20design%20%2837%29-5cJTuK5XBR0MGlpwB2ggkzJH7f4H6i.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image7-Af0d3Dra9y9KVl3lVqGsFHbEGeHYzU.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/OpenAI%20Playground%202025-05-13%20at%2020.33.54-f7MRl8CQPHepzGxLOCwabfRfCvsRV7.png",
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image6-AnewAPuzhmlsPdsLmv7ChJxJNcunLb.png",
-    ]
-
-    // Shuffle helper
-    function shuffle(arr: string[]) {
-      const a = arr.slice()
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[a[i], a[j]] = [a[j], a[i]]
-      }
-      return a
-    }
-
-    // Fill each column with a different shuffled order
-    const marquees = [
-      document.getElementById("marquee1"),
-      document.getElementById("marquee2"),
-      document.getElementById("marquee3"),
-    ]
-
-    if (marquees[0] && marquees[1] && marquees[2]) {
-      const reelOrders = [shuffle(images), shuffle(images), shuffle(images)]
-      const reelOrders2 = [shuffle(images), shuffle(images), shuffle(images)]
-
-      marquees.forEach((marquee, i) => {
-        if (marquee) {
-          marquee.innerHTML = ""
-          // First unique shuffle
-          reelOrders[i].forEach((src) => {
-            const div = document.createElement("div")
-            div.className = styles.item
-            const img = document.createElement("img")
-            img.src = src
-            img.alt = "Property Image"
-            img.crossOrigin = "anonymous"
-            div.appendChild(img)
-            marquee.appendChild(div)
-          })
-          // Second unique shuffle (for seamless loop)
-          reelOrders2[i].forEach((src) => {
-            const div = document.createElement("div")
-            div.className = styles.item
-            const img = document.createElement("img")
-            img.src = src
-            img.alt = "Property Image"
-            img.crossOrigin = "anonymous"
-            div.appendChild(img)
-            marquee.appendChild(div)
-          })
-        }
-      })
-    }
-
-    // Start the slot machine animation with a slight delay
-    setTimeout(() => {
-      // Hide loading animation
-      if (loadingOverlayRef.current) {
-        loadingOverlayRef.current.style.opacity = "0"
-      }
-      // Stop the grid animator
-      gridAnimator.stop()
-
-      // Start spinning
-      spinOnce()
-    }, 3000) // Show loading for 3 seconds before starting spin
-  }
-
-  // Slot machine animation (one-time, automatic)
-  const ITEM_HEIGHT = 280
-  const SPACING = 30
-  const SPIN_DISTANCE = (ITEM_HEIGHT + SPACING) * 10 // Using 10 as a base for the images array length
-
-  const spinOnce = () => {
-    const marquees = [
-      document.getElementById("marquee1"),
-      document.getElementById("marquee2"),
-      document.getElementById("marquee3"),
-    ]
-
-    if (marquees[0] && marquees[1] && marquees[2]) {
-      // Prepare for animation by forcing layout calculations first
-      marquees.forEach((marquee) => {
-        // Force layout calculation
-        void marquee.offsetHeight
-
-        // Apply GPU acceleration
-        marquee.style.willChange = "transform"
-        marquee.style.transform = "translateZ(0)"
-      })
-
-      // Sequential stopping for reels (left to right)
-      marquees.forEach((marquee, index) => {
-        if (marquee) {
-          // Add staggered delay for each column
-          setTimeout(() => {
-            // Initial fast spin with better transition curve
-            marquee.style.transition = "transform 1.5s cubic-bezier(0.19, 0.69, 0.22, 1)"
-
-            // Use requestAnimationFrame for better performance
-            requestAnimationFrame(() => {
-              marquee.style.transform = `translateY(-${SPIN_DISTANCE * 0.6}px)`
-
-              // Then slow down to final position
-              setTimeout(() => {
-                marquee.style.transition = "transform 2.5s cubic-bezier(0.33, 0.9, 0.33, 1)"
-
-                requestAnimationFrame(() => {
-                  marquee.style.transform = `translateY(-${SPIN_DISTANCE}px)`
-                })
-              }, 1500)
-            })
-          }, index * 600) // Each column starts with a delay
-        }
-      })
-
-      // Allow enough time for all animation phases to complete
-      setTimeout(() => {
-        // Reset will-change property after animation
-        marquees.forEach((marquee) => {
-          if (marquee) {
-            marquee.style.willChange = "auto"
-          }
-        })
-
-        // Show the selection loading animation
-        const selectionAnimator = showSelectionLoadingAnimation()
-
-        // After showing loading animation for a while, start highlight process
-        setTimeout(() => {
-          // Hide loading animation
-          if (loadingOverlayRef.current) {
-            loadingOverlayRef.current.style.opacity = "0"
-          }
-
-          // Clean up selection styles
-          const loadingText = document.querySelector(`.${styles.loadingText}`)
-          if (loadingText) {
-            loadingText.classList.remove(styles.selectionPhase)
-          }
-
-          const gridCells = document.querySelectorAll(`.${styles.gridCell}`)
-          gridCells.forEach((cell) => {
-            cell.classList.remove(styles.selectionMode)
-          })
-
-          // Stop the grid animator
-          selectionAnimator.stop()
-
-          // Start highlight animation
-          highlightAndAnimate()
-        }, 2500) // Show selection loading for 2.5 seconds
-      }, 5000)
-    }
-  }
-
-  // Add a second loading animation for the selection process
-  const showSelectionLoadingAnimation = () => {
-    if (loadingOverlayRef.current) {
-      // Change the text for this phase and add selection phase class
-      const loadingText = document.querySelector(`.${styles.loadingText}`)
-      if (loadingText) {
-        loadingText.textContent = "Choosing the best properties..."
-        loadingText.classList.add(styles.selectionPhase)
-      }
-      loadingOverlayRef.current.style.opacity = "1"
-    }
-
-    // Add selection mode class to all grid cells to use different style
-    const gridCells = document.querySelectorAll(`.${styles.gridCell}`)
-    gridCells.forEach((cell) => {
-      cell.classList.add(styles.selectionMode)
-    })
-
-    // Start the grid cell animation with selection patterns
-    const gridAnimator = new SelectionGridAnimator()
-    gridAnimator.start()
-
-    // Return the animator so we can stop it later
-    return gridAnimator
-  }
-
-  // Function to show memorandum loading animation
-  const showMemorandumLoadingAnimation = () => {
-    if (loadingOverlayRef.current) {
-      // Change the text for this phase and add memorandum phase class
-      const loadingText = document.querySelector(`.${styles.loadingText}`)
-      if (loadingText) {
-        loadingText.textContent = "Generating branded offering memorandums..."
-        loadingText.classList.add(styles.memorandumPhase)
-      }
-      loadingOverlayRef.current.style.opacity = "1"
-    }
-
-    // Add memorandum mode class to all grid cells to use different style
-    const gridCells = document.querySelectorAll(`.${styles.gridCell}`)
-    gridCells.forEach((cell) => {
-      cell.classList.remove(styles.selectionMode) // Remove any previous mode
-      cell.classList.add(styles.memorandumMode)
-    })
-
-    // Start the grid cell animation with memorandum patterns
-    const gridAnimator = new MemorandumGridAnimator()
-    gridAnimator.start()
-
-    // Return the animator so we can stop it later
-    return gridAnimator
   }
 
   // Function to show email generation animation
-  const showEmailGenerationAnimation = () => {
-    if (loadingOverlayRef.current) {
-      // Change the text for this phase
-      const loadingText = document.querySelector(`.${styles.loadingText}`)
-      if (loadingText) {
-        loadingText.textContent = "Generating email with OM's..."
-        loadingText.classList.add(styles.emailPhase)
-      }
+  function showEmailGenerationAnimation() {
+    if (!loadingOverlayRef.current) return null
 
-      // Make the overlay darker for email generation phase and place it on top
-      loadingOverlayRef.current.style.backgroundColor = "rgba(10, 14, 18, 0.92)"
-      loadingOverlayRef.current.style.opacity = "1"
-      loadingOverlayRef.current.style.zIndex = "1500" // Very high z-index to be on top of almost everything
+    // Change the text for this phase
+    const loadingText = document.querySelector(`.${styles.loadingText}`)
+    if (loadingText) {
+      loadingText.textContent = "Generating email with OM's..."
+      loadingText.classList.add(styles.emailPhase)
     }
+
+    // Make the overlay darker for email generation phase and place it on top
+    loadingOverlayRef.current.style.backgroundColor = "rgba(10, 14, 18, 0.92)"
+    loadingOverlayRef.current.style.opacity = "1"
+    loadingOverlayRef.current.style.zIndex = "1500" // Very high z-index to be on top of almost everything
 
     // Add email mode class to all grid cells to use different style
     const gridCells = document.querySelectorAll(`.${styles.gridCell}`)
@@ -932,423 +1150,156 @@ export default function ChatAnimation() {
 
     // Start the grid cell animation with email patterns
     const gridAnimator = new EmailGridAnimator()
+    emailAnimatorRef.current = gridAnimator
     gridAnimator.start()
 
     // Return the animator so we can stop it later
     return gridAnimator
   }
 
-  const highlightAndAnimate = () => {
-    const marquees = [
-      document.getElementById("marquee1"),
-      document.getElementById("marquee2"),
-      document.getElementById("marquee3"),
-    ]
+  function restoreChatInterface() {
+    if (!chatContainerRef.current || !slotMachineContainerRef.current) return
 
-    if (marquees[0] && marquees[1] && marquees[2]) {
-      // Find the 3 images closest to center
-      const selected: HTMLElement[] = []
-      marquees.forEach((marquee, i) => {
-        if (marquee) {
-          const items = marquee.querySelectorAll(`.${styles.item}`)
-          const wrapper = marquee.parentElement
-          if (wrapper) {
-            const wrapperRect = wrapper.getBoundingClientRect()
-            const wrapperCenterY = wrapperRect.top + wrapperRect.height / 2
-            let minDist = Number.POSITIVE_INFINITY
-            let closest: Element | null = null
-            items.forEach((item) => {
-              const rect = item.getBoundingClientRect()
-              const itemCenterY = rect.top + rect.height / 2
-              const dist = Math.abs(itemCenterY - wrapperCenterY)
-              if (dist < minDist) {
-                minDist = dist
-                closest = item
-              }
-            })
-            if (closest) selected.push(closest as HTMLElement)
-          }
-        }
-      })
+    // Hide slot machine and clear background
+    slotMachineContainerRef.current.style.opacity = "0"
+    slotMachineContainerRef.current.style.pointerEvents = "none"
 
-      // Create clones of selected elements that we'll animate
-      const clones = selected.map((item, index) => {
-        const clone = item.cloneNode(true) as HTMLElement
-        clone.classList.add(styles.selectedClone)
-        clone.classList.add(`${styles.selectedClone}-${index}`)
-
-        // Get current position
-        const rect = item.getBoundingClientRect()
-
-        // Style the clone for animation
-        clone.style.position = "fixed"
-        clone.style.top = rect.top + "px"
-        clone.style.left = rect.left + "px"
-        clone.style.width = rect.width + "px"
-        clone.style.height = rect.height + "px"
-        clone.style.zIndex = "1000"
-        clone.style.margin = "0"
-        clone.style.transition = "none"
-
-        // Add to document
-        document.body.appendChild(clone)
-
-        return clone
-      })
-
-      // Store the center clone and its position for other clones to move to
-      const centerClone = clones[1]
-      const centerPosition = centerClone.getBoundingClientRect()
-
-      // Hide all original marquee content
-      marquees.forEach((marquee) => {
-        if (marquee) {
-          // Fade out with transition
-          marquee.style.transition = "opacity 0.5s ease"
-          marquee.style.opacity = "0"
-        }
-      })
-
-      // Highlight clones one by one
-      function highlightClones(idx: number) {
-        if (idx >= clones.length) {
-          // After highlighting all clones, begin the move to center sequence
-          setTimeout(moveToCenter, 600)
-          return
-        }
-
-        // Apply highlight with CSS transitions
-        const clone = clones[idx]
-        clone.style.transition = "box-shadow 0.5s ease, transform 0.5s ease"
-        clone.style.boxShadow = "0 0 20px 8px rgba(59, 130, 246, 0.5)"
-        clone.style.transform = "scale(1.05)"
-
-        // Add a glow class for extra visual effect
-        clone.classList.add(styles.highlightedClone)
-
-        // Move to next clone after delay
-        setTimeout(() => highlightClones(idx + 1), 800)
-      }
-
-      // Start highlighting process
-      setTimeout(() => highlightClones(0), 500)
-
-      // Move side clones to center
-      function moveToCenter() {
-        // First move up slightly
-        clones.forEach((clone) => {
-          clone.style.transition = "transform 0.8s cubic-bezier(0.23, 1, 0.32, 1)"
-          clone.style.transform = "scale(1.05) translateY(-40px)"
-        })
-
-        // After moving up, begin the converge to center animation
-        setTimeout(() => {
-          // Get the left and right clones
-          const leftClone = clones[0]
-          const rightClone = clones[2]
-
-          // Prepare for movement to center
-          leftClone.style.transition = "left 0.8s cubic-bezier(0.16, 1, 0.3, 1), top 0.8s cubic-bezier(0.16, 1, 0.3, 1)"
-          rightClone.style.transition =
-            "left 0.8s cubic-bezier(0.16, 1, 0.3, 1), top 0.8s cubic-bezier(0.16, 1, 0.3, 1)"
-
-          // Move to center position
-          leftClone.style.left = centerPosition.left + "px"
-          rightClone.style.left = centerPosition.left + "px"
-
-          // After converging to center, drop them all
-          setTimeout(dropClones, 1000)
-        }, 800)
-      }
-
-      // Drop clones down off-screen
-      function dropClones() {
-        clones.forEach((clone) => {
-          // Change transition for drop animation
-          clone.style.transition = "top 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s ease"
-
-          // Move down below screen
-          clone.style.top = window.innerHeight + 100 + "px"
-
-          // Fade out as they drop
-          setTimeout(() => {
-            clone.style.opacity = "0"
-          }, 300)
-        })
-
-        // After clones drop, show the memorandum loading animation
-        setTimeout(() => {
-          // Remove clones from DOM when animations complete
-          clones.forEach((clone) => clone.remove())
-
-          // Show memorandum loading animation
-          const memorandumAnimator = showMemorandumLoadingAnimation()
-
-          // After showing memorandum loading animation, show offering memorandum
-          setTimeout(() => {
-            // Hide loading animation
-            if (loadingOverlayRef.current) {
-              loadingOverlayRef.current.style.opacity = "0"
-            }
-
-            // Clean up memorandum styles
-            const loadingText = document.querySelector(`.${styles.loadingText}`)
-            if (loadingText) {
-              loadingText.classList.remove(styles.memorandumPhase)
-            }
-
-            const gridCells = document.querySelectorAll(`.${styles.gridCell}`)
-            gridCells.forEach((cell) => {
-              cell.classList.remove(styles.memorandumMode)
-            })
-
-            // Stop the memorandum animator
-            memorandumAnimator.stop()
-
-            // Show offering memorandum
-            showOfferingMemorandum()
-          }, 2500) // Show memorandum loading for 2.5 seconds
-        }, 1500)
-      }
-    }
-  }
-
-  // Function to show offering memorandum
-  const showOfferingMemorandum = () => {
-    // Create container
-    const container = document.createElement("div")
-    container.className = styles.upwardsContainer
-    container.innerHTML = `
-      <div class="${styles.offeringText}">OFFERING MEMORANDUMS</div>
-      <div class="${styles.upwardsImageWrapper}">
-        <img src="/images/slot/offering-memorandum.png" alt="Offering Memorandums">
-      </div>
-    `
-
-    // Set will-change for better performance
-    container.style.willChange = "transform, bottom"
-
-    // Set initial position
-    container.style.bottom = "-100%"
-    container.style.transition = "bottom 1.5s cubic-bezier(0.16, 1, 0.3, 1)"
-    document.body.appendChild(container)
-
-    // Force reflow before animation
-    void container.offsetHeight
-
-    // Move up with requestAnimationFrame for better performance
-    requestAnimationFrame(() => {
-      container.style.bottom = "-10%"
-
-      // Fade in text separately with requestAnimationFrame
-      const text = container.querySelector(`.${styles.offeringText}`)
-      if (text) {
-        ;(text as HTMLElement).style.willChange = "opacity, transform"
-        ;(text as HTMLElement).style.transform = "translateY(20px)"
-        ;(text as HTMLElement).style.transition = "opacity 0.7s ease, transform 0.7s ease"
-
-        setTimeout(() => {
-          requestAnimationFrame(() => {
-            ;(text as HTMLElement).style.opacity = "1"
-            ;(text as HTMLElement).style.transform = "translateY(0)"
-
-            // WAIT FOR FULL OFFERING MEMORANDUM DOCUMENT TO BE VISIBLE FIRST
-            // Let it be visible for a while
-            setTimeout(() => {
-              // NOW show the email generation animation
-              const emailAnimator = showEmailGenerationAnimation()
-
-              // After email generation animation, fade things out
-              setTimeout(() => {
-                // Hide loading animation
-                if (loadingOverlayRef.current) {
-                  loadingOverlayRef.current.style.opacity = "0"
-                }
-
-                // Clean up email styles
-                const loadingText = document.querySelector(`.${styles.loadingText}`)
-                if (loadingText) {
-                  loadingText.classList.remove(styles.emailPhase)
-                }
-
-                const gridCells = document.querySelectorAll(`.${styles.gridCell}`)
-                gridCells.forEach((cell) => {
-                  cell.classList.remove(styles.emailMode)
-                })
-
-                // Stop the email animator
-                emailAnimator.stop()
-
-                // Fade out the offering memorandum and text
-                container.style.transition = "opacity 1s ease"
-                container.style.opacity = "0"
-                if (text) {
-                  ;(text as HTMLElement).style.transition = "opacity 1s ease"
-                  ;(text as HTMLElement).style.opacity = "0"
-                }
-
-                // After fade out completes, restore chat
-                setTimeout(() => {
-                  container.style.willChange = "auto"
-                  if (text) {
-                    ;(text as HTMLElement).style.willChange = "auto"
-                  }
-
-                  // Restore chat interface
-                  restoreChatInterface()
-                }, 1000)
-              }, 3000) // Email generation animation duration
-            }, 3000) // Time to display offering memorandum before starting email animation
-          })
-        }, 600)
-      }
+    // Restore chat container to full size
+    gsap.to(chatContainerRef.current, {
+      left: "50%",
+      xPercent: -50,
+      width: "90%",
+      height: "90vh",
+      duration: 1.2,
+      ease: "power2.inOut",
+      onComplete: () => {
+        // Show typing animation
+        showTypingAnimation()
+      },
     })
   }
 
-  const restoreChatInterface = () => {
-    if (chatContainerRef.current && slotMachineContainerRef.current) {
-      // Hide slot machine and clear background
-      slotMachineContainerRef.current.style.opacity = "0"
-      slotMachineContainerRef.current.style.pointerEvents = "none"
+  function showTypingAnimation() {
+    if (!chatMessagesRef.current) return
 
-      // Restore chat container to full size
-      // @ts-ignore - gsap is loaded via CDN
-      gsap.to(chatContainerRef.current, {
-        left: "50%",
-        xPercent: -50,
-        width: "90%",
-        height: "90vh",
-        duration: 1.2,
-        ease: "power2.inOut",
-        onComplete: () => {
-          // Show typing animation
-          showTypingAnimation()
-        },
-      })
-    }
-  }
-
-  const showTypingAnimation = () => {
-    if (chatMessagesRef.current) {
-      const typingIndicator = document.createElement("div")
-      typingIndicator.className = `${styles.messageGroup} ${styles.aiGroup}`
-      typingIndicator.id = "typingIndicator"
-      typingIndicator.innerHTML = `
-        <div class="${styles.messageAvatar} ${styles.ai}">Z
-          <div class="${styles.avatarLabel}">ZAPCRE AI</div>
+    const typingIndicator = document.createElement("div")
+    typingIndicator.className = `${styles.messageGroup} ${styles.aiGroup}`
+    typingIndicator.id = "typingIndicator"
+    typingIndicator.innerHTML = `
+      <div class="${styles.messageAvatar} ${styles.ai}">Z
+        <div class="${styles.avatarLabel}">Astroop AI</div>
+      </div>
+      <div class="${styles.message} ${styles.aiMessage}">
+        <div class="${styles.typingIndicator}">
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
-        <div class="${styles.message} ${styles.aiMessage}">
-          <div class="${styles.typingIndicator}">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </div>
-      `
-      chatMessagesRef.current.appendChild(typingIndicator)
+      </div>
+    `
+    chatMessagesRef.current.appendChild(typingIndicator)
 
-      // Scroll to the bottom of the chat container
-      scrollToBottom()
+    // Scroll to the bottom of the chat container
+    scrollToBottom()
 
-      // Show typing indicator for a bit
+    // Show typing indicator for a bit
+    setTimeout(() => {
+      typingIndicator.style.opacity = "1"
+
+      // After typing, show the message
       setTimeout(() => {
-        typingIndicator.style.opacity = "1"
-
-        // After typing, show the message
-        setTimeout(() => {
-          // Remove typing indicator
-          typingIndicator.remove()
-          showPropertyMessage()
-        }, 2000)
-      }, 500)
-    }
+        // Remove typing indicator
+        typingIndicator.remove()
+        showPropertyMessage()
+      }, 2000)
+    }, 500)
   }
 
   // Helper function to scroll to the bottom of the chat container
-  const scrollToBottom = () => {
+  function scrollToBottom() {
     if (chatMessagesRef.current) {
       chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight
     }
   }
 
-  const showPropertyMessage = () => {
-    if (chatMessagesRef.current) {
-      const propertyMessage = document.createElement("div")
-      propertyMessage.className = `${styles.messageGroup} ${styles.aiGroup}`
-      propertyMessage.innerHTML = `
-        <div class="${styles.messageAvatar} ${styles.ai}">Z
-          <div class="${styles.avatarLabel}">ZAPCRE AI</div>
-        </div>
-        <div class="${styles.message} ${styles.aiMessage}">
-          <div class="${styles.messageText}">
-            I found some properties matching your description here they are with their Offering Memorandums:
-            <div class="${styles.propertyCards}">
-              <div class="${styles.propertyCard}">
-                <strong>Property 1</strong><br>
-                6% cap rate, $2.5M, 10-year lease, Single Tenant, Texas<br>
-                <a href="#" class="${styles.memorandumLink}">Offering Memorandum 1.pdf</a>
-              </div>
-              <div class="${styles.propertyCard}">
-                <strong>Property 2</strong><br>
-                5.8% cap rate, $2.8M, 12-year lease, Single Tenant, Texas<br>
-                <a href="#" class="${styles.memorandumLink}">Offering Memorandum 2.pdf</a>
-              </div>
-              <div class="${styles.propertyCard}">
-                <strong>Property 3</strong><br>
-                6.2% cap rate, $2.9M, 15-year lease, Single Tenant, Texas<br>
-                <a href="#" class="${styles.memorandumLink}">Offering Memorandum 3.pdf</a>
-              </div>
+  function showPropertyMessage() {
+    if (!chatMessagesRef.current) return
+
+    const propertyMessage = document.createElement("div")
+    propertyMessage.className = `${styles.messageGroup} ${styles.aiGroup}`
+    propertyMessage.innerHTML = `
+      <div class="${styles.messageAvatar} ${styles.ai}">Z
+        <div class="${styles.avatarLabel}">Astroop AI</div>
+      </div>
+      <div class="${styles.message} ${styles.aiMessage}">
+        <div class="${styles.messageText}">
+          I found some properties matching your description here they are with their Offering Memorandums:
+          <div class="${styles.propertyCards}">
+            <div class="${styles.propertyCard}">
+              <strong>Property 1</strong><br>
+              6% cap rate, $2.5M, 10-year lease, Single Tenant, Texas<br>
+              <a href="#" class="${styles.memorandumLink}">Offering Memorandum 1.pdf</a>
+            </div>
+            <div class="${styles.propertyCard}">
+              <strong>Property 2</strong><br>
+              5.8% cap rate, $2.8M, 12-year lease, Single Tenant, Texas<br>
+              <a href="#" class="${styles.memorandumLink}">Offering Memorandum 2.pdf</a>
+            </div>
+            <div class="${styles.propertyCard}">
+              <strong>Property 3</strong><br>
+              6.2% cap rate, $2.9M, 15-year lease, Single Tenant, Texas<br>
+              <a href="#" class="${styles.memorandumLink}">Offering Memorandum 3.pdf</a>
             </div>
           </div>
-          <div class="${styles.messageTime}">12:07 PM</div>
         </div>
-      `
-      chatMessagesRef.current.appendChild(propertyMessage)
+        <div class="${styles.messageTime}">12:07 PM</div>
+      </div>
+    `
+    chatMessagesRef.current.appendChild(propertyMessage)
 
-      // Scroll to the bottom of the chat container
-      scrollToBottom()
+    // Scroll to the bottom of the chat container
+    scrollToBottom()
 
-      // After showing properties, show user response with a longer delay
-      setTimeout(() => {
-        showUserResponse()
-      }, 5000) // Increased from 2000 to 5000 for more delay
-    }
+    // After showing properties, show user response with a longer delay
+    setTimeout(() => {
+      showUserResponse()
+    }, 5000) // Increased from 2000 to 5000 for more delay
   }
 
-  const showUserResponse = () => {
-    if (chatMessagesRef.current) {
-      const userResponse = document.createElement("div")
-      userResponse.className = styles.messageGroup
-      userResponse.innerHTML = `
-        <div class="${styles.messageAvatar} ${styles.user}">J</div>
-        <div class="${styles.message} ${styles.userMessage}">
-          <div class="${styles.messageText}">
-            Wow! Thanks, that was quick!
-          </div>
-          <div class="${styles.messageInfo}">
-            <div class="${styles.messageTime}">12:09 PM</div>
-            <div class="${styles.messageStatus}">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 13L9 17L19 7" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
+  function showUserResponse() {
+    if (!chatMessagesRef.current) return
+
+    const userResponse = document.createElement("div")
+    userResponse.className = styles.messageGroup
+    userResponse.innerHTML = `
+      <div class="${styles.messageAvatar} ${styles.user}">J</div>
+      <div class="${styles.message} ${styles.userMessage}">
+        <div class="${styles.messageText}">
+          Wow! Thanks, that was quick!
+        </div>
+        <div class="${styles.messageInfo}">
+          <div class="${styles.messageTime}">12:09 PM</div>
+          <div class="${styles.messageStatus}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 13L9 17L19 7" stroke="#4F80FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
         </div>
-      `
-      chatMessagesRef.current.appendChild(userResponse)
+      </div>
+    `
+    chatMessagesRef.current.appendChild(userResponse)
 
-      // Scroll to the bottom of the chat container
-      scrollToBottom()
+    // Scroll to the bottom of the chat container
+    scrollToBottom()
 
-      // Show restart overlay after 3 seconds
-      setTimeout(() => {
-        showRestartOverlay()
-      }, 3000)
-    }
+    // Show restart overlay after 3 seconds
+    setTimeout(() => {
+      showRestartOverlay()
+    }, 3000)
   }
 
   // Function to display restart overlay
-  const showRestartOverlay = () => {
+  function showRestartOverlay() {
     // Create the overlay
     const overlay = document.createElement("div")
     overlay.className = styles.restartOverlay
@@ -1375,7 +1326,7 @@ export default function ChatAnimation() {
   }
 
   return (
-    <div className={styles.pageContainer}>
+    <div className={inter.className}>
       {/* Chat Interface Container */}
       <div className={styles.chatContainer} id="chatContainer" ref={chatContainerRef}>
         <div className={styles.chatHeader}>
@@ -1383,7 +1334,7 @@ export default function ChatAnimation() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M19 12H5M5 12L12 19M5 12L12 5"
-                stroke="#3b82f6"
+                stroke="#4F80FF"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -1401,7 +1352,7 @@ export default function ChatAnimation() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M12 12V12.01M12 6V6.01M12 18V18.01"
-                stroke="#3b82f6"
+                stroke="#4F80FF"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -1420,7 +1371,7 @@ export default function ChatAnimation() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2"
-                stroke="#ffffff"
+                stroke="#4F80FF"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -1455,13 +1406,13 @@ export default function ChatAnimation() {
 
         <div className={styles.columnsContainer}>
           <div className={styles.wrapper} id="column1">
-            <div className={styles.marquee} id="marquee1"></div>
+            <div className={styles.marquee} id="marquee1" ref={marquee1Ref}></div>
           </div>
           <div className={styles.wrapper} id="column2">
-            <div className={styles.marquee} id="marquee2"></div>
+            <div className={styles.marquee} id="marquee2" ref={marquee2Ref}></div>
           </div>
           <div className={styles.wrapper} id="column3">
-            <div className={styles.marquee} id="marquee3"></div>
+            <div className={styles.marquee} id="marquee3" ref={marquee3Ref}></div>
           </div>
         </div>
       </div>
