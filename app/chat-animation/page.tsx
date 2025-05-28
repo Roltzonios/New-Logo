@@ -128,6 +128,8 @@ export default function ChatAnimation() {
               // Add minimized class before animation
               if (chatContainerRef.current) {
                 chatContainerRef.current.classList.add(styles.minimized)
+                // Ensure chat is behind slot machine when minimized
+                chatContainerRef.current.style.zIndex = "500"
 
                 // Set will-change to optimize animation
                 chatContainerRef.current.style.willChange = "transform, width, left"
@@ -182,8 +184,8 @@ export default function ChatAnimation() {
 
     images.forEach((src) => {
       const img = new Image()
-      img.src = src
       img.crossOrigin = "anonymous"
+      img.src = src
     })
   }
 
@@ -685,6 +687,8 @@ export default function ChatAnimation() {
 
   // Update initSlotMachine to show loading animation
   const initSlotMachine = () => {
+    console.log("Starting slot machine initialization...")
+
     // Start the loading animation
     const gridAnimator = showLoadingAnimation()
 
@@ -719,41 +723,97 @@ export default function ChatAnimation() {
       document.getElementById("marquee3"),
     ]
 
+    console.log("Found marquees:", marquees)
+
     if (marquees[0] && marquees[1] && marquees[2]) {
       const reelOrders = [shuffle(images), shuffle(images), shuffle(images)]
       const reelOrders2 = [shuffle(images), shuffle(images), shuffle(images)]
 
       marquees.forEach((marquee, i) => {
         if (marquee) {
+          console.log(`Populating marquee ${i + 1}...`)
           marquee.innerHTML = ""
+
           // First unique shuffle
-          reelOrders[i].forEach((src) => {
+          reelOrders[i].forEach((src, index) => {
             const div = document.createElement("div")
             div.className = styles.item
+            div.style.width = "280px"
+            div.style.height = "280px"
+            div.style.marginBottom = "50px"
+            div.style.backgroundColor = "#fff"
+            div.style.border = "2px solid rgba(59, 130, 246, 0.5)"
+            div.style.borderRadius = "8px"
+            div.style.overflow = "hidden"
+
             const img = document.createElement("img")
             img.src = src
-            img.alt = "Property Image"
+            img.alt = `Property Image ${index + 1}`
+            img.style.width = "100%"
+            img.style.height = "100%"
+            img.style.objectFit = "cover"
+            img.style.display = "block"
             img.crossOrigin = "anonymous"
+
+            img.onload = () => {
+              console.log(`Image loaded: ${src}`)
+            }
+
+            img.onerror = (e) => {
+              console.error(`Failed to load image: ${src}`, e)
+              // Add a fallback background color
+              div.style.backgroundColor = "#ff6b00"
+              div.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white; font-weight: bold;">Property ${index + 1}</div>`
+            }
+
             div.appendChild(img)
             marquee.appendChild(div)
           })
+
           // Second unique shuffle (for seamless loop)
-          reelOrders2[i].forEach((src) => {
+          reelOrders2[i].forEach((src, index) => {
             const div = document.createElement("div")
             div.className = styles.item
+            div.style.width = "280px"
+            div.style.height = "280px"
+            div.style.marginBottom = "50px"
+            div.style.backgroundColor = "#fff"
+            div.style.border = "2px solid rgba(59, 130, 246, 0.5)"
+            div.style.borderRadius = "8px"
+            div.style.overflow = "hidden"
+
             const img = document.createElement("img")
             img.src = src
-            img.alt = "Property Image"
+            img.alt = `Property Image ${index + 1} (Loop)`
+            img.style.width = "100%"
+            img.style.height = "100%"
+            img.style.objectFit = "cover"
+            img.style.display = "block"
             img.crossOrigin = "anonymous"
+
+            img.onload = () => {
+              console.log(`Loop image loaded: ${src}`)
+            }
+
+            img.onerror = (e) => {
+              console.error(`Failed to load loop image: ${src}`, e)
+              // Add a fallback background color
+              div.style.backgroundColor = "#3b82f6"
+              div.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white; font-weight: bold;">Property ${index + 1}</div>`
+            }
+
             div.appendChild(img)
             marquee.appendChild(div)
           })
+
+          console.log(`Marquee ${i + 1} populated with ${marquee.children.length} items`)
         }
       })
     }
 
     // Start the slot machine animation with a slight delay
     setTimeout(() => {
+      console.log("Starting slot machine spin...")
       // Hide loading animation
       if (loadingOverlayRef.current) {
         loadingOverlayRef.current.style.opacity = "0"
@@ -1119,11 +1179,11 @@ export default function ChatAnimation() {
     const container = document.createElement("div")
     container.className = styles.upwardsContainer
     container.innerHTML = `
-      <div class="${styles.offeringText}">OFFERING MEMORANDUMS</div>
-      <div class="${styles.upwardsImageWrapper}">
-        <img src="/images/slot/offering-memorandum.png" alt="Offering Memorandums">
-      </div>
-    `
+  <div class="${styles.offeringText}">OFFERING MEMORANDUMS</div>
+  <div class="${styles.upwardsImageWrapper}">
+    <img src="/images/slot/new-offering-memorandum.png" alt="Offering Memorandums" crossorigin="anonymous">
+  </div>
+`
 
     // Set will-change for better performance
     container.style.willChange = "transform, bottom"
@@ -1210,6 +1270,9 @@ export default function ChatAnimation() {
       // Hide slot machine and clear background
       slotMachineContainerRef.current.style.opacity = "0"
       slotMachineContainerRef.current.style.pointerEvents = "none"
+
+      // Restore chat container z-index
+      chatContainerRef.current.style.zIndex = "1000"
 
       // Restore chat container to full size
       // @ts-ignore - gsap is loaded via CDN
