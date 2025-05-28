@@ -4,8 +4,7 @@
   padding: 0;
 }
 
-/* Replace :root with a local class for variables */
-.variables {
+:root {
   --item-width: 280px; /* Increased from 150px */
   --item-height: 280px; /* Increased from 150px */
   --total-items: 8; /* Number of items */
@@ -588,8 +587,8 @@
 }
 
 .upwardsImageWrapper {
-  width: 40%; /* Changed from 80% to make it 2x smaller */
-  max-width: 400px; /* Changed from 800px to make it 2x smaller */
+  width: 80%;
+  max-width: 800px;
   position: relative;
   animation: blueGlow 2s infinite alternate;
   will-change: filter;
@@ -605,10 +604,10 @@
 .offeringText {
   font-family: inherit;
   font-weight: 600;
-  font-size: 30px; /* Changed from 60px to make it 2x smaller */
+  font-size: 60px;
   color: white;
   text-align: center;
-  margin-bottom: 20px; /* Changed from 40px to make it proportional */
+  margin-bottom: 40px;
   opacity: 0;
   text-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
   will-change: opacity, transform;
