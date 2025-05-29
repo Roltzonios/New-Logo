@@ -14,6 +14,18 @@
   min-height: 100vh;
   width: 100%;
   position: relative;
+  /* CSS Variables defined here */
+  --item-width: 280px;
+  --item-height: 280px;
+  --total-items: 8;
+  --spacing: 50px;
+  --column-padding: 80px;
+  --blue-primary: #1e3a8a;
+  --blue-secondary: #3b82f6;
+  --blue-light: #dbeafe;
+  --blue-dark: #1e40af;
+  --text-light: #f5f5f5;
+  --text-dark: #0a0e12;
 }
 
 /* Chat Interface Styles - Email Response Look with dark theme */
@@ -33,19 +45,20 @@
   transform: translate(-50%, -50%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  z-index: 1000; /* Reduced from 2000 to allow slot machine to be on top */
   transition: all 0.3s ease;
   backface-visibility: hidden;
   transform-style: preserve-3d;
 }
 
+/* For when the chat is minimized to the left - only adjust width-related properties */
 .minimized {
   font-size: 95%;
-  z-index: 500;
+  z-index: 500; /* Even lower z-index when minimized */
 }
 
 .minimized .message {
-  max-width: 90%;
+  max-width: 90%; /* Allow messages to use more space in the narrower container */
 }
 
 .chatHeader {
@@ -140,11 +153,13 @@
   transition: opacity 0.3s ease;
 }
 
+/* For messages that we manually show/hide */
 .messageGroupWithId {
   animation: none;
   transform: translateY(0);
 }
 
+/* Message appear animation */
 @keyframes messageAppear {
   to {
     opacity: 1;
@@ -152,6 +167,7 @@
   }
 }
 
+/* Typing indicator animation */
 .typingIndicator {
   display: inline-block;
   position: relative;
@@ -190,6 +206,7 @@
   }
 }
 
+/* Reverse for AI messages (ZAPCRE AI) */
 .aiGroup {
   flex-direction: row-reverse;
 }
@@ -314,7 +331,7 @@
   stroke: white;
 }
 
-/* Slot Machine Styles */
+/* Slot Machine Styles - Dark Theme */
 .slotMachineContainer {
   position: absolute;
   top: 0;
@@ -327,12 +344,12 @@
   align-items: center;
   background: linear-gradient(135deg, #0a0e12, #141820);
   overflow: hidden;
-  z-index: 2000;
+  z-index: 2000; /* Increased to be above chat */
 }
 
 .columnsContainer {
   display: grid;
-  grid-template-columns: repeat(3, 280px);
+  grid-template-columns: repeat(3, 280px); /* Fixed width instead of variable */
   justify-content: center;
   column-gap: 25px;
   width: 100%;
@@ -342,9 +359,10 @@
   will-change: transform;
   transform: translateZ(0);
   position: relative;
-  z-index: 2100;
+  z-index: 2100; /* Higher than slot machine container */
 }
 
+/* Add subtle glow to slot machine container */
 .slotMachineContainer::before {
   content: "";
   position: absolute;
@@ -358,18 +376,18 @@
 }
 
 .wrapper {
-  width: 280px;
+  width: 280px; /* Fixed width */
   height: 100vh;
   position: relative;
-  overflow: hidden;
+  overflow: hidden; /* Changed from visible to hidden to contain the images */
   will-change: transform;
   padding: 0;
   margin: 0;
   transform: translateZ(0);
   backface-visibility: hidden;
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  background: rgba(255, 255, 255, 0.05);
-  z-index: 2200;
+  border: 2px solid rgba(59, 130, 246, 0.3); /* Add border to see the container */
+  background: rgba(255, 255, 255, 0.05); /* Add slight background */
+  z-index: 2200; /* Higher than columns container */
 }
 
 .marquee {
@@ -383,14 +401,14 @@
   overflow: visible;
   transform: translateZ(0);
   backface-visibility: hidden;
-  z-index: 2300;
+  z-index: 2300; /* Higher than wrapper */
 }
 
 .item {
-  width: 280px;
-  height: 280px;
+  width: 280px; /* Fixed width */
+  height: 280px; /* Fixed height */
   border-radius: 8px;
-  margin-bottom: 50px;
+  margin-bottom: 50px; /* Fixed spacing */
   flex-shrink: 0;
   background-color: #fff;
   overflow: hidden;
@@ -398,14 +416,15 @@
   will-change: transform, opacity;
   backface-visibility: hidden;
   transform: translateZ(0);
-  border: 2px solid rgba(59, 130, 246, 0.5);
+  border: 2px solid rgba(59, 130, 246, 0.5); /* Add border to see items */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  z-index: 2400;
+  z-index: 2400; /* Higher than marquee */
 }
 
+/* Selected clone styles for animation */
 .selectedClone {
   position: fixed;
-  z-index: 3000;
+  z-index: 3000; /* Very high for animation clones */
   border-radius: 8px;
   background-color: #fff;
   overflow: hidden;
@@ -417,7 +436,7 @@
 
 .highlightedClone {
   box-shadow: 0 0 25px 12px rgba(59, 130, 246, 0.4), 0 0 40px 16px rgba(30, 64, 175, 0.25) !important;
-  z-index: 3100;
+  z-index: 3100; /* Even higher for highlighted clones */
   animation: pulseGlowEnhanced 1.5s infinite alternate;
 }
 
@@ -439,7 +458,7 @@
 }
 
 .highlighted {
-  position: absolute;
+  position: absolute; /* Allow absolute positioning during animation */
   z-index: 100;
 }
 
@@ -449,7 +468,7 @@
   object-fit: cover;
   border-radius: 6px;
   backface-visibility: hidden;
-  display: block;
+  display: block; /* Ensure images are displayed */
 }
 
 .marqueeHeading {
@@ -477,6 +496,7 @@
   position: relative;
   outline: none;
   border: none;
+  /* Blue gradient glow - enhanced */
   background-color: rgba(59, 130, 246, 0.05);
   box-shadow: inset 0 0 20px 8px rgba(59, 130, 246, 0.2), 0 0 30px 12px rgba(59, 130, 246, 0.3), 0 0 40px 16px
     rgba(30, 64, 175, 0.15);
@@ -543,6 +563,7 @@
   transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Combined container for the final animation */
 .combinedContainer {
   position: absolute;
   top: 50%;
@@ -557,31 +578,32 @@
   pointer-events: none;
 }
 
+/* Upwards image container */
 .upwardsContainer {
   position: fixed;
   bottom: -100%;
   left: 0;
   width: 100%;
-  z-index: 4000;
+  z-index: 4000; /* Very high for offering memorandum */
   pointer-events: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  transform: translateX(16%) translateZ(0);
+  transform: translateX(16%) translateZ(0); /* Add translateZ for hardware acceleration */
   will-change: transform, bottom;
   backface-visibility: hidden;
 }
 
 .upwardsImageWrapper {
-  width: 70vw;
-  max-width: 1200px;
-  min-width: 400px;
+  width: 70vw; /* Use viewport width for responsiveness */
+  max-width: 1200px; /* Maximum size on very large screens */
+  min-width: 400px; /* Minimum size on very small screens */
   position: relative;
   animation: blueGlow 2s infinite alternate;
   will-change: filter;
   transform: translateZ(0);
-  z-index: 4100;
+  z-index: 4100; /* Higher than container */
 }
 
 .upwardsContainer img {
@@ -593,15 +615,15 @@
 .offeringText {
   font-family: inherit;
   font-weight: 600;
-  font-size: clamp(24px, 4vw, 60px);
+  font-size: clamp(24px, 4vw, 60px); /* Responsive font size */
   color: white;
   text-align: center;
-  margin-bottom: clamp(20px, 3vw, 40px);
+  margin-bottom: clamp(20px, 3vw, 40px); /* Responsive margin */
   opacity: 0;
   text-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
   will-change: opacity, transform;
   transform: translateZ(0);
-  z-index: 4200;
+  z-index: 4200; /* Higher than image wrapper */
 }
 
 @keyframes blueGlow {
@@ -622,6 +644,7 @@
   transition: opacity 0.7s;
 }
 
+/* Loading Animation Overlay */
 .loadingOverlay {
   position: absolute;
   top: 0;
@@ -629,7 +652,7 @@
   width: 100%;
   height: 100%;
   background: rgba(10, 14, 18, 0.85);
-  z-index: 5000;
+  z-index: 5000; /* Highest z-index to overlay everything when active */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -666,9 +689,82 @@
 .active {
   background: #3b82f6;
   box-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
-  animation: pulsate 0.8s ease-in-out infinite;
 }
 
+/* Animation patterns for grid cells */
+@keyframes horizontalScan {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  33% {
+    transform: translateY(43px);
+  }
+  66% {
+    transform: translateY(86px);
+  }
+}
+
+@keyframes verticalScan {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  33% {
+    transform: translateX(43px);
+  }
+  66% {
+    transform: translateX(86px);
+  }
+}
+
+@keyframes diagonalScan {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(43px, 43px);
+  }
+  50% {
+    transform: translate(86px, 86px);
+  }
+  75% {
+    transform: translate(43px, 43px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes clockwiseScan {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  12.5% {
+    transform: translate(43px, 0);
+  }
+  25% {
+    transform: translate(86px, 0);
+  }
+  37.5% {
+    transform: translate(86px, 43px);
+  }
+  50% {
+    transform: translate(86px, 86px);
+  }
+  62.5% {
+    transform: translate(43px, 86px);
+  }
+  75% {
+    transform: translate(0, 86px);
+  }
+  87.5% {
+    transform: translate(0, 43px);
+  }
+}
+
+/* Pulse animation for active cells */
 @keyframes pulsate {
   0%,
   100% {
@@ -681,8 +777,13 @@
   }
 }
 
+.active {
+  animation: pulsate 0.8s ease-in-out infinite;
+}
+
+/* Selection Animation Styles */
 .selectionMode {
-  background: #3b82f6;
+  background: #3b82f6; /* Changed to blue to match the theme */
   box-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
   animation: pulsateSelection 0.8s ease-in-out infinite;
 }
@@ -699,6 +800,7 @@
   }
 }
 
+/* Modify loading text animation for selection phase */
 .selectionPhase {
   animation: textGlow 2s infinite alternate;
 }
@@ -712,6 +814,7 @@
   }
 }
 
+/* Memorandum Animation Styles */
 .memorandumMode {
   background: #3b82f6;
   box-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
@@ -749,6 +852,7 @@
   }
 }
 
+/* Restart Demo Overlay Styles */
 .restartOverlay {
   position: fixed;
   top: 0;
@@ -759,7 +863,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 6000;
+  z-index: 6000; /* Highest of all */
   opacity: 0;
   transition: opacity 0.5s ease;
 }
@@ -793,6 +897,7 @@
   transform: scale(0.98);
 }
 
+/* Property Cards Styling */
 .propertyCards {
   margin-top: 15px;
   display: flex;
@@ -836,6 +941,7 @@
   text-decoration: underline;
 }
 
+/* Email Animation Styles */
 .emailMode {
   background: #3b82f6;
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.9);
