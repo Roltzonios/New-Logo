@@ -43,18 +43,18 @@
   overflow: visible;
 }
 
-.item {
+.marquee .item {
   width: 280px;
   height: 280px;
   border-radius: 1px;
-  margin-bottom: 50px; /* INCREASED from 30px to 50px */
+  margin-bottom: 70px; /* INCREASED from 50px to 70px for more space */
   flex-shrink: 0;
   background-color: #fff;
   overflow: visible;
   position: relative;
 }
 
-.item img {
+.marquee .item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -62,7 +62,7 @@
 }
 
 /* Highlight effect - ENHANCED for stronger glow */
-.highlight {
+.marquee .item.highlight {
   position: relative;
   outline: none;
   border: none;
@@ -75,7 +75,7 @@
   animation: pulseGlow 2s infinite alternate;
 }
 
-.highlight::before {
+.marquee .item.highlight::before {
   content: "";
   position: absolute;
   top: -8px;
@@ -109,29 +109,29 @@
 }
 
 /* Rise animation */
-.rise {
+.marquee .item.rise {
   transform: translateY(-40px) scale(1.05);
   transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   z-index: 20;
 }
 
 /* Center item special styling */
-.centerItem {
+.marquee .item.center-item {
   z-index: 30;
 }
 
-.combined {
+.marquee .item.center-item.combined {
   transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Fade out non-selected items - IMPROVED for faster fade */
-.fadeOut {
+.marquee .item.fade-out {
   opacity: 0;
   transition: opacity 0.5s ease-out;
 }
 
 /* Combined container for the final animation */
-.combinedContainer {
+.combined-container {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -146,7 +146,7 @@
 }
 
 /* Upwards image container - FIXED positioning */
-.upwardsContainer {
+.upwards-container {
   position: fixed;
   bottom: -100%;
   left: 0;
@@ -159,7 +159,7 @@
   justify-content: flex-end;
 }
 
-.upwardsImageWrapper {
+.upwards-image-wrapper {
   width: 80%;
   max-width: 800px;
   position: relative;
@@ -169,14 +169,14 @@
   padding: 20px;
 }
 
-.upwardsContainer img {
+.upwards-container img {
   width: 100%;
   height: auto;
   display: block;
   border-radius: 4px;
 }
 
-.offeringText {
+.offering-text {
   font-family: "Inter", sans-serif;
   font-weight: 700;
   font-size: 60px;
@@ -199,7 +199,7 @@
   }
 }
 
-.exitDown {
+.exit-down {
   opacity: 0;
 }
 

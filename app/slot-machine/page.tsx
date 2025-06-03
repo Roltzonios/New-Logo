@@ -1,16 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import Script from "next/script"
+import { useEffect } from "react"
 import styles from "./styles.module.css"
 import gsap from "gsap"
 
 export default function SlotMachinePage() {
-  const [isLoaded, setIsLoaded] = useState(false)
-
   useEffect(() => {
-    if (!isLoaded) return
-
     // Images to use - using our existing property images
     const images = [
       "/images/slot/image1.png",
@@ -52,7 +47,7 @@ export default function SlotMachinePage() {
       // First unique shuffle
       reelOrders[i].forEach((src) => {
         const div = document.createElement("div")
-        div.className = styles.item
+        div.className = "item"
         const img = document.createElement("img")
         img.src = src
         img.alt = "Slot Image"
@@ -62,7 +57,7 @@ export default function SlotMachinePage() {
       // Second unique shuffle (for seamless loop)
       reelOrders2[i].forEach((src) => {
         const div = document.createElement("div")
-        div.className = styles.item
+        div.className = "item"
         const img = document.createElement("img")
         img.src = src
         img.alt = "Slot Image"
@@ -73,14 +68,14 @@ export default function SlotMachinePage() {
 
     // Slot machine animation (multi-phase, sequential stopping)
     const ITEM_HEIGHT = 280
-    const SPACING = 50 // Increased from 30px to 50px
+    const SPACING = 70 // Increased from 50px to 70px
     const SPIN_DISTANCE = (ITEM_HEIGHT + SPACING) * images.length
 
     function spinOnce() {
       // Phase 1: Fast initial spinning for all columns
       marquees.forEach((marquee) => {
-        marquee.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1)"
-        marquee.style.transform = `translateY(-${SPIN_DISTANCE * 0.5}px)`
+        marquee.style.transition = "transform 1.5s cubic-bezier(0.19, 1, 0.22, 1)"
+        marquee.style.transform = `translateY(-${SPIN_DISTANCE * 0.6}px)`
       })
 
       // Phase 2 & 3: Sequential slowdown and stopping for each column
@@ -103,14 +98,15 @@ export default function SlotMachinePage() {
             setTimeout(() => highlightAndAnimate(), 3100)
           }, 400)
         }, 400)
-      }, 1200)
+      }, 1500)
     }
 
+    // Fix the highlighting and animation sequence
     function highlightAndAnimate() {
       // Find the 3 images visually closest to the center (one per column)
       const selected = []
       marquees.forEach((marquee, i) => {
-        const items = marquee.querySelectorAll(`.${styles.item}`)
+        const items = marquee.querySelectorAll(".item")
         const wrapper = marquee.parentElement
         const wrapperRect = wrapper.getBoundingClientRect()
         const wrapperCenterY = wrapperRect.top + wrapperRect.height / 2
@@ -131,22 +127,22 @@ export default function SlotMachinePage() {
       // Add a blue glow outline to one image at a time
       function glowOneByOne(idx) {
         if (idx >= selected.length) {
-          // After highlighting all, make them rise together
+          // After highlighting all, make them rise together and fade out others
           setTimeout(() => {
             // Make all selected items rise at once
             selected.forEach((item, i) => {
-              item.classList.add(styles.rise)
+              item.classList.add("rise")
               // Add center-item class to the middle item (index 1)
               if (i === 1) {
-                item.classList.add(styles.centerItem)
+                item.classList.add("center-item")
               }
             })
 
-            // Fade out non-selected items
+            // Fade out all non-selected items
             marquees.forEach((marquee) => {
-              marquee.querySelectorAll(`.${styles.item}`).forEach((item) => {
+              marquee.querySelectorAll(".item").forEach((item) => {
                 if (!selected.includes(item)) {
-                  item.classList.add(styles.fadeOut)
+                  item.classList.add("fade-out")
                 }
               })
             })
@@ -156,8 +152,12 @@ export default function SlotMachinePage() {
           }, 600)
           return
         }
-        selected[idx].classList.add(styles.highlight)
-        setTimeout(() => glowOneByOne(idx + 1), 800) // longer delay between highlights
+
+        // Add highlight to current item
+        selected[idx].classList.add("highlight")
+
+        // Move to next item after delay
+        setTimeout(() => glowOneByOne(idx + 1), 800)
       }
 
       // Start the highlight sequence
@@ -194,12 +194,12 @@ export default function SlotMachinePage() {
           onComplete: () => {
             // Create a combined container
             const combinedContainer = document.createElement("div")
-            combinedContainer.className = styles.combinedContainer
+            combinedContainer.className = "combined-container"
             document.body.appendChild(combinedContainer)
 
             // Clone the center item for the combined animation
             const combinedItem = centerItem.cloneNode(true)
-            combinedItem.classList.add(styles.combined)
+            combinedItem.classList.add("combined")
             combinedContainer.appendChild(combinedItem)
 
             // Hide the original items
@@ -217,18 +217,18 @@ export default function SlotMachinePage() {
               onComplete: () => {
                 // Create and animate the upwards image
                 const upwardsContainer = document.createElement("div")
-                upwardsContainer.className = styles.upwardsContainer
+                upwardsContainer.className = "upwards-container"
                 document.body.appendChild(upwardsContainer)
 
-                // Add offering text
+                // FIXED: Add title above the image
                 const offeringText = document.createElement("div")
-                offeringText.className = styles.offeringText
+                offeringText.className = "offering-text"
                 offeringText.textContent = "OFFERING MEMORANDUM"
                 upwardsContainer.appendChild(offeringText)
 
                 // Create image wrapper for glow effect
                 const imageWrapper = document.createElement("div")
-                imageWrapper.className = styles.upwardsImageWrapper
+                imageWrapper.className = "upwards-image-wrapper"
                 upwardsContainer.appendChild(imageWrapper)
 
                 // Create the image using the offering memorandum image
@@ -246,7 +246,7 @@ export default function SlotMachinePage() {
                   height: "auto",
                 })
 
-                // Animate it coming up to 10% from the bottom
+                // FIXED: Animate it coming up to 10% from the bottom
                 tl.to(upwardsContainer, {
                   bottom: "10%", // Changed from -10% to 10%
                   duration: 1.8,
@@ -271,45 +271,36 @@ export default function SlotMachinePage() {
     }
 
     // Start the slot machine animation with a slight delay
-    setTimeout(spinOnce, 500)
+    setTimeout(spinOnce, 100)
 
     // Cleanup function
     return () => {
       // Remove any event listeners or timers if needed
-      const containers = document.querySelectorAll(`.${styles.combinedContainer}, .${styles.upwardsContainer}`)
+      const containers = document.querySelectorAll(".combined-container, .upwards-container")
       containers.forEach((container) => {
         if (container && container.parentNode) {
           container.parentNode.removeChild(container)
         }
       })
     }
-  }, [isLoaded])
+  }, [])
 
   return (
-    <>
-      <Script
-        src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"
-        strategy="beforeInteractive"
-        onLoad={() => setIsLoaded(true)}
-      />
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js" strategy="beforeInteractive" />
-
-      <div className={styles.slotContainer}>
-        <div className={styles.columnsContainer}>
-          <div className={styles.wrapper} id="column1">
-            <div className={styles.marquee} id="marquee1"></div>
-          </div>
-          <div className={styles.wrapper} id="column2">
-            <div className={styles.marquee} id="marquee2"></div>
-          </div>
-          <div className={styles.wrapper} id="column3">
-            <div className={styles.marquee} id="marquee3"></div>
-          </div>
+    <div className={styles.slotContainer}>
+      <div className={styles.columnsContainer}>
+        <div className={styles.wrapper} id="column1">
+          <div className={styles.marquee} id="marquee1"></div>
         </div>
-        <button className={styles.restartButton} onClick={() => window.location.reload()}>
-          Restart Animation
-        </button>
+        <div className={styles.wrapper} id="column2">
+          <div className={styles.marquee} id="marquee2"></div>
+        </div>
+        <div className={styles.wrapper} id="column3">
+          <div className={styles.marquee} id="marquee3"></div>
+        </div>
       </div>
-    </>
+      <button className={styles.restartButton} onClick={() => window.location.reload()}>
+        Restart Animation
+      </button>
+    </div>
   )
 }

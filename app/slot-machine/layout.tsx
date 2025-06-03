@@ -1,5 +1,6 @@
 import type React from "react"
 import { Inter } from "next/font/google"
+import Script from "next/script"
 
 // Initialize the Inter font
 const inter = Inter({
@@ -9,5 +10,11 @@ const inter = Inter({
 })
 
 export default function SlotMachineLayout({ children }: { children: React.ReactNode }) {
-  return <div className={inter.className}>{children}</div>
+  return (
+    <>
+      <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" strategy="beforeInteractive" />
+      <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js" strategy="beforeInteractive" />
+      <div className={inter.className}>{children}</div>
+    </>
+  )
 }

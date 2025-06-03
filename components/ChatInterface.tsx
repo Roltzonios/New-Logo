@@ -1,77 +1,155 @@
 "use client"
 
-import { useState } from "react"
+import type React from "react"
+import { useState, useEffect, useRef } from "react"
 import ChatHeader from "./ChatHeader"
 import ChatMessage from "./ChatMessage"
 import ChatInput from "./ChatInput"
 import ChatTypingIndicator from "./ChatTypingIndicator"
+import { toast } from "@/hooks/use-toast"
 
-export default function ChatInterface() {
-  const [messages, setMessages] = useState([
-    { content: "Hello! How can I help you today?", isUser: false, timestamp: "10:30 AM" },
-  ])
-  const [isTyping, setIsTyping] = useState(false)
+const ChatInterface = () => {
+  const [messages, setMessages] = useState<{ content: React.ReactNode; isUser: boolean; timestamp?: string }[]>([])
+  const [typing, setTyping] = useState(false)
+  const [typingText, setTypingText] = useState("typing")
+  const [animationStep, setAnimationStep] = useState(0)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const handleSendMessage = (message: string) => {
-    // Add user message
-    setMessages((prev) => [...prev, { content: message, isUser: true, timestamp: getCurrentTime() }])
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
-    // Show typing indicator
-    setIsTyping(true)
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages, typing])
 
-    // Simulate AI response after a delay
+  useEffect(() => {
     setTimeout(() => {
-      setIsTyping(false)
-      setMessages((prev) => [
-        ...prev,
+      setMessages([
         {
-          content: getResponseForMessage(message),
-          isUser: false,
-          timestamp: getCurrentTime(),
+          content: (
+            <div>
+              <div className="bg-blue-900 text-blue-300 px-3 py-1 rounded-full inline-block mb-2 shadow shadow-blue-600/50">
+                new form submitted
+              </div>
+              <div className="text-white">
+                Hey! I'm looking for a NNN property with a 6% cap rate. - Under $3M -10 Year Min Remaining -Single
+                Tenant Only -In Texas Can you send me some Offering Memorandums? Thanks!
+              </div>
+            </div>
+          ),
+          isUser: true,
+          timestamp: "12:05 PM",
         },
       ])
-    }, 1500)
-  }
 
-  const getCurrentTime = () => {
-    const now = new Date()
-    return `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`
-  }
+      setTimeout(() => {
+        setTyping(true)
 
-  const getResponseForMessage = (message: string) => {
-    const responses = [
-      "I've found several properties that match your criteria.",
-      "That's a great question about commercial real estate investments.",
-      "Let me check the latest listings for you.",
-      "I can help you analyze the potential ROI for that property.",
-      "Would you like me to schedule a viewing for you?",
-    ]
-    return responses[Math.floor(Math.random() * responses.length)]
+        setTimeout(() => {
+          setTyping(false)
+          setMessages((prev) => [
+            ...prev,
+            {
+              content: "Sure, give me a moment to get those!",
+              isUser: false,
+              timestamp: "12:06 PM",
+            },
+          ])
+
+          setTimeout(() => {
+            setTyping(true)
+            setTypingText("finding best matching properties...")
+            setAnimationStep(1)
+
+            setTimeout(() => {
+              setTypingText("selecting best properties")
+              setAnimationStep(2)
+
+              setTimeout(() => {
+                setTypingText("generating offering memorandum...")
+                setAnimationStep(3)
+
+                setTimeout(() => {
+                  setTyping(false)
+                  setMessages((prev) => [
+                    ...prev,
+                    {
+                      content: (
+                        <div>
+                          <p className="font-semibold text-white mb-2">
+                            Here are the best matching properties with their offering memorandums attached:
+                          </p>
+
+                          <div className="border-l-4 border-blue-600 pl-3 mb-3 text-blue-200">
+                            <p className="font-medium">Dollar General - Dallas, TX</p>
+                            <p className="text-sm">$2.8M | 6.1% Cap Rate | 12 Years Remaining | NNN</p>
+                            <p className="text-blue-400 text-sm underline mt-1">Download Offering Memorandum</p>
+                          </div>
+
+                          <div className="border-l-4 border-blue-600 pl-3 mb-3 text-blue-200">
+                            <p className="font-medium">CVS Pharmacy - Houston, TX</p>
+                            <p className="text-sm">$2.95M | 5.9% Cap Rate | 15 Years Remaining | NNN</p>
+                            <p className="text-blue-400 text-sm underline mt-1">Download Offering Memorandum</p>
+                          </div>
+
+                          <div className="border-l-4 border-blue-600 pl-3 text-blue-200">
+                            <p className="font-medium">Walgreens - San Antonio, TX</p>
+                            <p className="text-sm">$2.7M | 6.0% Cap Rate | 11 Years Remaining | NNN</p>
+                            <p className="text-blue-400 text-sm underline mt-1">Download Offering Memorandum</p>
+                          </div>
+                        </div>
+                      ),
+                      isUser: false,
+                      timestamp: "12:07 PM",
+                    },
+                  ])
+
+                  toast({
+                    title: "Properties Found",
+                    description: "3 matching properties have been found in Texas.",
+                  })
+                }, 5000)
+              }, 3000)
+            }, 6000)
+          }, 2000)
+        }, 2000)
+      }, 1000)
+    }, 500)
+  }, [])
+
+  const handleSendMessage = (message: string) => {
+    setMessages((prev) => [...prev, { content: message, isUser: true }])
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-100">
-      <ChatHeader title="Astroop CRE Assistant" subtitle="Online" />
+    <div className="flex flex-col h-full max-w-md mx-auto border border-blue-900 rounded-lg overflow-hidden shadow-xl bg-black shadow-blue-700/40">
+      <ChatHeader title="Zapcre AI" subtitle="We typically reply in a few minutes" />
 
-      <div className="flex-1 p-4 overflow-y-auto">
-        {messages.map((msg, index) => (
-          <ChatMessage key={index} content={msg.content} isUser={msg.isUser} timestamp={msg.timestamp} />
+      <div className="flex-1 overflow-y-auto p-4 bg-black">
+        {messages.map((message, index) => (
+          <ChatMessage key={index} content={message.content} isUser={message.isUser} timestamp={message.timestamp} />
         ))}
-        {isTyping && (
+
+        {typing && (
           <div className="flex items-start gap-3 mb-4">
-            <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden flex items-center justify-center bg-blue-500 text-white">
-              <div className="w-full h-full flex items-center justify-center">A</div>
+            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center shadow shadow-blue-400/40">
+              A
             </div>
-            <div className="flex flex-col max-w-[80%] items-start">
-              <div className="rounded-2xl px-4 py-2 break-words bg-blue-500 text-white">
-                <ChatTypingIndicator />
+            <div className="flex flex-col max-w-[80%]">
+              <div className="rounded-2xl px-4 py-2 bg-blue-500 shadow shadow-blue-400/40">
+                <ChatTypingIndicator text={typingText} />
               </div>
             </div>
           </div>
         )}
+
+        <div ref={messagesEndRef} />
       </div>
 
       <ChatInput onSendMessage={handleSendMessage} />
     </div>
   )
 }
+
+export default ChatInterface
