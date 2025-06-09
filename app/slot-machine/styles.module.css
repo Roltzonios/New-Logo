@@ -47,7 +47,7 @@
   width: 280px;
   height: 280px;
   border-radius: 1px;
-  margin-bottom: 70px; /* INCREASED from 50px to 70px for more space */
+  margin-bottom: 50px; /* INCREASED from 30px to 50px */
   flex-shrink: 0;
   background-color: #fff;
   overflow: visible;

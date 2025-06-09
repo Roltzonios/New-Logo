@@ -68,7 +68,7 @@ export default function SlotMachinePage() {
 
     // Slot machine animation (multi-phase, sequential stopping)
     const ITEM_HEIGHT = 280
-    const SPACING = 70 // Increased from 50px to 70px
+    const SPACING = 50 // Increased from 30px to 50px
     const SPIN_DISTANCE = (ITEM_HEIGHT + SPACING) * images.length
 
     function spinOnce() {
@@ -101,7 +101,6 @@ export default function SlotMachinePage() {
       }, 1500)
     }
 
-    // Fix the highlighting and animation sequence
     function highlightAndAnimate() {
       // Find the 3 images visually closest to the center (one per column)
       const selected = []
@@ -124,40 +123,24 @@ export default function SlotMachinePage() {
         selected.push(closest)
       })
 
+      // FIXED: Immediately fade out all non-selected items
+      marquees.forEach((marquee) => {
+        marquee.querySelectorAll(".item").forEach((item) => {
+          if (!selected.includes(item)) {
+            item.classList.add("fade-out")
+          }
+        })
+      })
+
       // Add a blue glow outline to one image at a time
       function glowOneByOne(idx) {
         if (idx >= selected.length) {
-          // After highlighting all, make them rise together and fade out others
-          setTimeout(() => {
-            // Make all selected items rise at once
-            selected.forEach((item, i) => {
-              item.classList.add("rise")
-              // Add center-item class to the middle item (index 1)
-              if (i === 1) {
-                item.classList.add("center-item")
-              }
-            })
-
-            // Fade out all non-selected items
-            marquees.forEach((marquee) => {
-              marquee.querySelectorAll(".item").forEach((item) => {
-                if (!selected.includes(item)) {
-                  item.classList.add("fade-out")
-                }
-              })
-            })
-
-            // Continue with the rest of the animation
-            setTimeout(riseAndCombine, 800)
-          }, 600)
+          // After highlighting all, make them rise together
+          setTimeout(riseAndCombine, 600)
           return
         }
-
-        // Add highlight to current item
         selected[idx].classList.add("highlight")
-
-        // Move to next item after delay
-        setTimeout(() => glowOneByOne(idx + 1), 800)
+        setTimeout(() => glowOneByOne(idx + 1), 800) // longer delay between highlights
       }
 
       // Start the highlight sequence
@@ -165,108 +148,120 @@ export default function SlotMachinePage() {
 
       // After highlighting all, make them rise, combine, and exit
       function riseAndCombine() {
-        // Get position of center item for other items to move to
-        const centerItem = selected[1]
-        const centerRect = centerItem.getBoundingClientRect()
-
-        // Get positions of left and right items
-        const leftItem = selected[0]
-        const rightItem = selected[2]
-
-        // Calculate the X translation needed to center
-        const leftRect = leftItem.getBoundingClientRect()
-        const rightRect = rightItem.getBoundingClientRect()
-
-        const leftToCenter = centerRect.left - leftRect.left
-        const rightToCenter = centerRect.left - rightRect.left
-
-        // Use GSAP to animate items moving to center
-        gsap.to(leftItem, {
-          x: leftToCenter,
-          duration: 0.8,
-          ease: "power3.inOut",
+        // Make all selected items rise at once
+        selected.forEach((item, i) => {
+          item.classList.add("rise")
+          // Add center-item class to the middle item (index 1)
+          if (i === 1) {
+            item.classList.add("center-item")
+          }
         })
 
-        gsap.to(rightItem, {
-          x: rightToCenter,
-          duration: 0.8,
-          ease: "power3.inOut",
-          onComplete: () => {
-            // Create a combined container
-            const combinedContainer = document.createElement("div")
-            combinedContainer.className = "combined-container"
-            document.body.appendChild(combinedContainer)
+        // After rise animation, move side items to center
+        setTimeout(() => {
+          // Get position of center item for other items to move to
+          const centerItem = selected[1]
+          const centerRect = centerItem.getBoundingClientRect()
 
-            // Clone the center item for the combined animation
-            const combinedItem = centerItem.cloneNode(true)
-            combinedItem.classList.add("combined")
-            combinedContainer.appendChild(combinedItem)
+          // Get positions of left and right items
+          const leftItem = selected[0]
+          const rightItem = selected[2]
 
-            // Hide the original items
-            gsap.to([leftItem, centerItem, rightItem], {
-              opacity: 0,
-              duration: 0.5,
-            })
+          // Calculate the X translation needed to center
+          const leftRect = leftItem.getBoundingClientRect()
+          const rightRect = rightItem.getBoundingClientRect()
 
-            // Animate the combined item going down
-            gsap.to(combinedContainer, {
-              y: window.innerHeight,
-              duration: 1.5,
-              ease: "power2.in",
-              delay: 0.5,
-              onComplete: () => {
-                // Create and animate the upwards image
-                const upwardsContainer = document.createElement("div")
-                upwardsContainer.className = "upwards-container"
-                document.body.appendChild(upwardsContainer)
+          const leftToCenter = centerRect.left - leftRect.left
+          const rightToCenter = centerRect.left - rightRect.left
 
-                // FIXED: Add title above the image
-                const offeringText = document.createElement("div")
-                offeringText.className = "offering-text"
-                offeringText.textContent = "OFFERING MEMORANDUM"
-                upwardsContainer.appendChild(offeringText)
+          // Use GSAP to animate items moving to center
+          gsap.to(leftItem, {
+            x: leftToCenter,
+            duration: 0.8,
+            ease: "power3.inOut",
+          })
 
-                // Create image wrapper for glow effect
-                const imageWrapper = document.createElement("div")
-                imageWrapper.className = "upwards-image-wrapper"
-                upwardsContainer.appendChild(imageWrapper)
+          gsap.to(rightItem, {
+            x: rightToCenter,
+            duration: 0.8,
+            ease: "power3.inOut",
+            onComplete: () => {
+              // Create a combined container
+              const combinedContainer = document.createElement("div")
+              combinedContainer.className = "combined-container"
+              document.body.appendChild(combinedContainer)
 
-                // Create the image using the offering memorandum image
-                const upwardsImage = document.createElement("img")
-                upwardsImage.src = "/images/slot/offering-memorandum.png"
-                upwardsImage.alt = "Offering Memorandum"
-                imageWrapper.appendChild(upwardsImage)
+              // Clone the center item for the combined animation
+              const combinedItem = centerItem.cloneNode(true)
+              combinedItem.classList.add("combined")
+              combinedContainer.appendChild(combinedItem)
 
-                // Animation timeline
-                const tl = gsap.timeline()
+              // Hide the original items
+              gsap.to([leftItem, centerItem, rightItem], {
+                opacity: 0,
+                duration: 0.5,
+              })
 
-                // Initial state
-                gsap.set(upwardsContainer, {
-                  bottom: "-100%",
-                  height: "auto",
-                })
+              // Animate the combined item going down
+              gsap.to(combinedContainer, {
+                y: window.innerHeight,
+                duration: 1.5,
+                ease: "power2.in",
+                delay: 0.5,
+                onComplete: () => {
+                  // Create and animate the upwards image
+                  const upwardsContainer = document.createElement("div")
+                  upwardsContainer.className = "upwards-container"
+                  document.body.appendChild(upwardsContainer)
 
-                // FIXED: Animate it coming up to 10% from the bottom
-                tl.to(upwardsContainer, {
-                  bottom: "10%", // Changed from -10% to 10%
-                  duration: 1.8,
-                  ease: "power2.out",
-                })
+                  // FIXED: Add title above the image
+                  const offeringText = document.createElement("div")
+                  offeringText.className = "offering-text"
+                  offeringText.textContent = "OFFERING MEMORANDUM"
+                  upwardsContainer.appendChild(offeringText)
 
-                // Fade in the offering text
-                tl.to(
-                  offeringText,
-                  {
-                    opacity: 1,
-                    duration: 1,
+                  // Create image wrapper for glow effect
+                  const imageWrapper = document.createElement("div")
+                  imageWrapper.className = "upwards-image-wrapper"
+                  upwardsContainer.appendChild(imageWrapper)
+
+                  // Create the image using the offering memorandum image
+                  const upwardsImage = document.createElement("img")
+                  upwardsImage.src = "/images/slot/offering-memorandum.png"
+                  upwardsImage.alt = "Offering Memorandum"
+                  imageWrapper.appendChild(upwardsImage)
+
+                  // Animation timeline
+                  const tl = gsap.timeline()
+
+                  // Initial state
+                  gsap.set(upwardsContainer, {
+                    bottom: "-100%",
+                    height: "auto",
+                  })
+
+                  // FIXED: Animate it coming up to 10% from the bottom
+                  tl.to(upwardsContainer, {
+                    bottom: "10%", // Changed from -10% to 10%
+                    duration: 1.8,
                     ease: "power2.out",
-                  },
-                  "-=1.5",
-                )
-              },
-            })
-          },
-        })
+                  })
+
+                  // Fade in the offering text
+                  tl.to(
+                    offeringText,
+                    {
+                      opacity: 1,
+                      duration: 1,
+                      ease: "power2.out",
+                    },
+                    "-=1.5",
+                  )
+                },
+              })
+            },
+          })
+        }, 800)
       }
     }
 

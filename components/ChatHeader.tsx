@@ -8,24 +8,24 @@ type ChatHeaderProps = {
 
 const ChatHeader = ({ title, subtitle, avatar }: ChatHeaderProps) => {
   return (
-    <div className="flex items-center gap-3 p-4 bg-black text-blue-400 shadow-lg shadow-blue-600/20">
-      <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-blue-800/20">
-        <ArrowLeft className="text-blue-400" />
+    <div className="flex items-center gap-3 p-4 bg-blue-500 text-white">
+      <button className="w-10 h-10 flex items-center justify-center rounded-full">
+        <ArrowLeft />
       </button>
-      <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border border-blue-500 shadow-md shadow-blue-500/30">
+      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center overflow-hidden">
         {avatar ? (
           <img src={avatar || "/placeholder.svg"} alt={title} className="w-full h-full object-cover" />
         ) : (
-          <div className="text-blue-400 font-bold">{title.charAt(0)}</div>
+          <div className="text-blue-500 font-bold">{title.charAt(0)}</div>
         )}
       </div>
       <div>
-        <h2 className="font-bold text-lg text-white">{title}</h2>
-        {subtitle && <p className="text-sm text-blue-300">{subtitle}</p>}
+        <h2 className="font-bold text-lg">{title}</h2>
+        {subtitle && <p className="text-sm opacity-90">{subtitle}</p>}
       </div>
       <div className="ml-auto flex gap-2">
-        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-blue-800/20">
-          <span className="text-xl text-blue-400">⋮</span>
+        <button className="w-10 h-10 flex items-center justify-center rounded-full">
+          <span className="text-xl">⋮</span>
         </button>
       </div>
     </div>
